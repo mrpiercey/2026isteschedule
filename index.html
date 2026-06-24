@@ -640,8 +640,17 @@
     if(cmd === ""){ blank(); return; }
 
     // ---- Easter eggs: only available AFTER the schedule has been viewed ----
+    // Hidden 2004 ALCS installer - requires the exact full command
+    if(cmd === "install lubinsky"){
+      blank();
+      out("Installing 2004 ALCS archive");
+      out("Copying files .............. OK");
+      out("Launching box score viewer...");
+      setTimeout(launchAlcs, 650);
+      return;
+    }
+
     if(easterEggsUnlocked){
-      if(cmd === "install lubinsky"){ launchAlcs(); return; }
       if(cmd === "wopr"){ enterWopr(); return; }
 
       // THE NUMBERS -> Swan station countdown + green screen
@@ -669,7 +678,7 @@
       }
     }
 
-    if(cmd === "install" || cmd.indexOf("install") === 0){
+    if(cmd === "install" || cmd === "install piercey" || cmd === "installpiercey"){
       blank();
       out("Installing ISTE 2026 schedule");
       out("Copying files .............. OK");
