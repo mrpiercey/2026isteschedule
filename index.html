@@ -797,7 +797,7 @@
     },
     match:{
       title:["The Edtech Match Game:","AI & ISTE Standards Edition"],
-      date:"Friday", time:"10:30 AM", location:"Room W307CD",
+      date:"Wednesday", time:"10:30 AM", location:"Room W307CD",
       presenters:"Bellow, Miller, Phyall, Provenzano, Williams, Dembo, Piercey", note:"",
       desc:[
         "Join a live, game show-style session where edtech",
@@ -811,14 +811,22 @@
   };
 
   var MENU = [
-    {key:"clarity",  label:"From Clicks to Clarity ......... Sun  12:00 PM  W206A"},
-    {key:"radio",    label:"Beyond Pressing Play .......... Mon  10:30 AM  W109B"},
-    {key:"aqua",     label:"Aqua by Adobe Booth ........... Mon   1:00 PM  #2454"},
-    {key:"schoolai", label:"SchoolAI Booth Presentation ... Tue  10:00 AM  #2714"},
-    {key:"match",    label:"The Edtech Match Game ......... Fri  10:30 AM  W307CD"},
+    {key:"clarity",  name:"From Clicks to Clarity",      day:"Sun", time:"12:00 PM", room:"W206A"},
+    {key:"radio",    name:"Beyond Pressing Play",        day:"Mon", time:"10:30 AM", room:"W109B"},
+    {key:"aqua",     name:"Aqua by Adobe Booth",         day:"Mon", time:"1:00 PM",  room:"#2454"},
+    {key:"schoolai", name:"SchoolAI Booth Presentation", day:"Tue", time:"10:00 AM", room:"#2714"},
+    {key:"match",    name:"The Edtech Match Game",       day:"Wed", time:"10:30 AM", room:"W307CD"},
     {key:"__sound",  label:"Install SoundBlaster 26 Card"},
     {key:"__exit",   label:"Exit to DOS"}
   ];
+  function padLeft(s, n){ s = String(s); while(s.length < n) s = " " + s; return s; }
+  function menuLabel(item){
+    if(item.label) return item.label;
+    var seg = item.name + " ";
+    while(seg.length < 31) seg += ".";
+    seg = seg.substring(0, 31);
+    return seg + " " + item.day + "  " + padLeft(item.time, 8) + "  " + item.room;
+  }
   var EXIT_DESC = ["Quit the installer and return to the C:\\> prompt."];
 
   var BAR  = "===============================================================";
@@ -1636,7 +1644,7 @@
   function renderMenu(){
     menuBody.innerHTML='';
     MENU.forEach(function(item,i){
-      var d = makeDiv(item.label, i===menuIndex ? 'sel' : '');
+      var d = makeDiv(menuLabel(item), i===menuIndex ? 'sel' : '');
       d.addEventListener('click', function(){
         menuIndex = i; renderMenu();
         if(item.key==="__exit"){ exitInstaller(); }
