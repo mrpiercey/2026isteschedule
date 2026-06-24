@@ -39,7 +39,9 @@
   #cursor{display:inline-block;width:0.55ch;height:1em;background:var(--white);
     margin-left:1px;animation:blink 1s steps(1) infinite;vertical-align:text-bottom;}
   @keyframes blink{50%{opacity:0;}}
-  #hiddenInput{position:absolute;left:-9999px;opacity:0;width:1px;height:1px;}
+  #hiddenInput{position:fixed;bottom:0;left:0;width:100%;height:1px;opacity:0;
+    border:0;padding:0;margin:0;background:transparent;color:transparent;
+    font-size:16px;z-index:-1;}  /* 16px stops iOS zoom; on-screen so mobile keyboard opens */
 
   /* ============ PHASE 2 : installer TUI ============ */
   body.installer{background:var(--gray);overflow:auto;cursor:default;}
@@ -169,6 +171,36 @@
     animation:flicker 8s infinite;
   }
   @keyframes flicker{0%,100%{opacity:1;}96%{opacity:1;}97%{opacity:0.95;}98%{opacity:1;}}
+
+  /* menu rows are tappable on touch devices */
+  .menu .line{cursor:pointer;}
+
+  /* ============ MOBILE / small screens ============ */
+  @media (max-width: 760px){
+    body{font-size:18px;}
+    #crt{padding:12px 14px;}
+    body.installer #tui, body.alcs #alcs{max-width:100%;padding:8px 10px 40px;}
+    .titlebar{font-size:16px;letter-spacing:0;}
+    .subbar{font-size:15px;margin-bottom:10px;}
+    /* green box: stack columns, auto height so nothing clips */
+    #detailBody{height:auto;font-size:18px;}
+    .d-title{font-size:20px;}
+    .d-cols{flex-direction:column;gap:10px;}
+    .d-facts{flex:none;width:100%;font-size:18px;}
+    .d-desc-col{font-size:18px;}
+    .d-label{width:5.5em;}
+    /* bigger tap targets in the menu */
+    .menu .line{padding:6px 8px;}
+    .footer{font-size:14px;}
+    /* ALCS box score: shrink and allow horizontal scroll */
+    #alcsDetail{height:auto;font-size:13px;overflow-x:auto;overflow-y:hidden;}
+    #alcsDesc{height:auto;}
+    /* WOPR / Swan green screens */
+    #swanscreen{font-size:20px;padding:18px;}
+    /* flip clock smaller in the corner */
+    .flip-digit{width:22px;height:32px;line-height:32px;font-size:24px;}
+    .flip-frame{padding:6px 8px;}
+  }
 </style>
 </head>
 <body>
@@ -627,6 +659,10 @@
     out("  To install and browse Donnie's ISTE schedule, type:"); blank();
     out("        INSTALL PIERCEY", 'bright'); blank();
     out("  ...then press ENTER."); blank();
+    if(window.matchMedia && window.matchMedia('(pointer:coarse)').matches){
+      out("  (On mobile? Tap the screen to open the keyboard,");
+      out("   and tap menu items inside the installer.)"); blank();
+    }
     locked = false;
     inputLine.style.display = 'flex';
     scrollBottom(); focusInput();
@@ -820,7 +856,13 @@
   function renderMenu(){
     menuBody.innerHTML='';
     MENU.forEach(function(item,i){
-      menuBody.appendChild(makeDiv(item.label, i===menuIndex ? 'sel' : ''));
+      var d = makeDiv(item.label, i===menuIndex ? 'sel' : '');
+      d.addEventListener('click', function(){
+        menuIndex = i; renderMenu();
+        if(item.key==="__exit"){ exitInstaller(); }
+        else { renderDetail(item.key); window.scrollTo(0,0); }
+      });
+      menuBody.appendChild(d);
     });
   }
 
@@ -926,9 +968,17 @@
   function renderAlcsMenu(){
     alcsMenuEl.innerHTML = '';
     for(var i=0;i<ALCS.length;i++){
-      alcsMenuEl.appendChild(makeDiv(alcsMenuLabel(ALCS[i]), i===alcsIndex ? 'sel' : ''));
+      (function(idx){
+        var d = makeDiv(alcsMenuLabel(ALCS[idx]), idx===alcsIndex ? 'sel' : '');
+        d.addEventListener('click', function(){
+          alcsIndex = idx; renderAlcsMenu(); renderAlcsDetail(idx); window.scrollTo(0,0);
+        });
+        alcsMenuEl.appendChild(d);
+      })(i);
     }
-    alcsMenuEl.appendChild(makeDiv("Exit to DOS", alcsIndex===ALCS.length ? 'sel' : ''));
+    var ex = makeDiv("Exit to DOS", alcsIndex===ALCS.length ? 'sel' : '');
+    ex.addEventListener('click', function(){ alcsIndex = ALCS.length; renderAlcsMenu(); exitAlcs(); });
+    alcsMenuEl.appendChild(ex);
   }
   function renderAlcsDesc(){
     alcsDescEl.innerHTML = '';
