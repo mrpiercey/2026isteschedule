@@ -58,15 +58,16 @@
     padding:10px 18px;margin:0 0 16px 0;
     box-shadow:5px 5px 0 rgba(0,0,0,0.35);
   }
-  #detailBody{height:13.5em;overflow:hidden;white-space:pre-wrap;}
-  .d-title{color:var(--white);}
-  .d-label{color:#003a00;}
+  #detailBody{height:12.5em;overflow:hidden;white-space:normal;font-size:25px;line-height:1.2;}
+  .d-title{color:var(--white);font-size:27px;}
+  .d-label{display:inline-block;width:6em;color:#003a00;}
   .d-value{color:var(--white);}
   .d-hint{color:#003a00;}
-  /* two-column layout inside the green box: facts | description */
-  .d-cols{display:flex;gap:40px;margin-top:2px;}
-  .d-facts{flex:0 0 47%;}
-  .d-desc-col{flex:1 1 0;min-width:0;}
+  /* two columns from the top: title + facts on the left, description on the right */
+  .d-cols{display:flex;gap:36px;}
+  .d-facts{flex:0 0 50%;font-size:25px;}
+  .d-desc-col{flex:1 1 0;min-width:0;font-size:24px;}
+  .d-para{margin:0 0 0.55em 0;}
 
   /* blue bordered boxes */
   .panel{
@@ -747,9 +748,19 @@
   }
   function detailRow(label, value){
     var d = document.createElement('div'); d.className='line';
-    var l=document.createElement('span'); l.className='d-label'; l.textContent=padRight(label,11);
+    var l=document.createElement('span'); l.className='d-label'; l.textContent=label;
     var v=document.createElement('span'); v.className='d-value'; v.textContent=value;
     d.appendChild(l); d.appendChild(v); return d;
+  }
+  // turn the desc line array into flowing paragraphs (blank string = paragraph break)
+  function descParas(arr){
+    var paras=[], cur=[];
+    arr.forEach(function(l){
+      if(l===""){ if(cur.length){ paras.push(cur.join(" ")); cur=[]; } }
+      else cur.push(l);
+    });
+    if(cur.length) paras.push(cur.join(" "));
+    return paras;
   }
   function renderDetailPlaceholder(){
     detailBody.innerHTML='';
@@ -762,19 +773,21 @@
   function renderDetail(key){
     var s=SESSIONS[key]; lastSession=key;
     detailBody.innerHTML='';
-    // title spans the full width
-    s.title.forEach(function(t){ detailBody.appendChild(makeDiv(t,'d-title')); });
-    detailBody.appendChild(makeDiv(""));
-    // two columns: facts on the left, description on the right
+    // two columns from the top: left = title + facts, right = description
     var cols = document.createElement('div'); cols.className = 'd-cols';
     var facts = document.createElement('div'); facts.className = 'd-facts';
     var desc  = document.createElement('div'); desc.className = 'd-desc-col';
+    s.title.forEach(function(t){ facts.appendChild(makeDiv(t,'d-title')); });
+    facts.appendChild(makeDiv(""));
     facts.appendChild(detailRow("Date", s.date));
     facts.appendChild(detailRow("Time", s.time));
     facts.appendChild(detailRow("Location", s.location));
     if(s.note)       facts.appendChild(detailRow("Note", s.note));
     if(s.presenters) facts.appendChild(detailRow("Speakers", s.presenters));
-    s.desc.forEach(function(l){ desc.appendChild(makeDiv(l, 'd-value')); });
+    descParas(s.desc).forEach(function(p){
+      var d=document.createElement('div'); d.className='d-para'; d.textContent=p;
+      desc.appendChild(d);
+    });
     cols.appendChild(facts); cols.appendChild(desc);
     detailBody.appendChild(cols);
   }
