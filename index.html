@@ -656,16 +656,65 @@
     out("        ISTE LIVE 2026  -  DONNIE PIERCEY SCHEDULE", 'bright');
     out(BAR); blank();
     out("  Schedule installation disk detected in drive C:."); blank();
-    out("  To install and browse Donnie's ISTE schedule, type:"); blank();
-    out("        INSTALL PIERCEY", 'bright'); blank();
-    out("  ...then press ENTER."); blank();
-    if(window.matchMedia && window.matchMedia('(pointer:coarse)').matches){
-      out("  (On mobile? Tap the screen to open the keyboard,");
-      out("   and tap menu items inside the installer.)"); blank();
-    }
-    locked = false;
+    promptEl.innerHTML = "C:\\&gt;";
+    typedEl.textContent = "";
     inputLine.style.display = 'flex';
-    scrollBottom(); focusInput();
+    scrollBottom();
+    setTimeout(function(){ autoType("install piercey", 0); }, 650);
+  }
+  // auto-type the install command, then run the loading screen
+  function autoType(str, i){
+    if(i <= str.length){
+      typedEl.textContent = str.slice(0, i);
+      scrollBottom();
+      setTimeout(function(){ autoType(str, i+1); }, 85);
+    } else {
+      setTimeout(function(){
+        out("C:\\>" + str);
+        typedEl.textContent = "";
+        inputLine.style.display = 'none';
+        runInstallLoading();
+      }, 450);
+    }
+  }
+  function addLine(text){
+    var d = document.createElement('div'); d.className = 'line';
+    d.textContent = text || ""; screenEl.appendChild(d); return d;
+  }
+  function repeatCh(ch, n){ var s=""; for(var k=0;k<n;k++) s+=ch; return s; }
+  function runInstallLoading(){
+    screenEl.innerHTML = '';
+    addLine(""); addLine("");
+    addLine("  Installing Donnie Piercey's ISTE Sessions").className = 'line bright';
+    addLine("  " + repeatCh("=", 44));
+    addLine("");
+    var status = addLine("");
+    addLine("");
+    var bar = addLine("");
+    var width = 34, pct = 0;
+    var msgs = [
+      "Loading session data ...",
+      "Reading clarity.bat ...",
+      "Reading radio.bat ...",
+      "Reading aqua.bat ...",
+      "Reading schoolai.bat ...",
+      "Reading match.bat ...",
+      "Building schedule index ...",
+      "Finalizing installation ..."
+    ];
+    var iv = setInterval(function(){
+      pct += 4; if(pct > 100) pct = 100;
+      var filled = Math.round(width * pct / 100);
+      bar.textContent = "  [" + repeatCh("#", filled) + repeatCh(".", width - filled) + "]  " + pct + "%";
+      var mi = Math.min(msgs.length - 1, Math.floor(pct/100 * msgs.length));
+      status.textContent = "  " + msgs[mi];
+      scrollBottom();
+      if(pct >= 100){
+        clearInterval(iv);
+        status.textContent = "  Installation complete.";
+        setTimeout(function(){ launchInstaller(); }, 700);
+      }
+    }, 85);
   }
 
   /* ===================== command processing (phase 1) ===================== */
