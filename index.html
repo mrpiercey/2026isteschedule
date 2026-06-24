@@ -831,7 +831,19 @@
         out("clarity.bat    radio.bat      aqua.bat");
         out("schoolai.bat   match.bat      readme.txt");
         blank();
-        out("12 file(s)");
+        out("Commands:");
+        out("  INSTALL PIERCEY   Browse the full schedule");
+        out("  CLARITY  RADIO  AQUA  SCHOOLAI  MATCH   Open a session");
+        out("  SCHEDULE   HELP   VER   CLS   LS / DIR");
+        if(easterEggsUnlocked){
+          blank();
+          out("Hidden commands (unlocked):", 'bright');
+          out("  WOPR ................ shall we play a game?");
+          out("  4 8 15 16 23 42 .... the numbers");
+          out("  JP .................. you didn't say the magic word");
+          out("  NEDRY .............. the magic word");
+          out("  INSTALL LUBINSKY ... 2004 ALCS box scores");
+        }
         blank(); break;
       case "ver":
         blank();
