@@ -691,10 +691,20 @@
         blank();
         out("  Available commands:");
         out("    INSTALL PIERCEY   Launch the schedule browser");
+        out("    LS / DIR          List files");
         out("    CLS               Clear the screen");
         out("    VER               Show version");
         blank(); break;
       case "cls": case "clear": screenEl.innerHTML=""; break;
+      case "ls": case "dir":
+        blank();
+        out("autoexec.bat   command.com    config.sys");
+        out("install.exe    piercey.dat    schedule.dat");
+        out("clarity.bat    radio.bat      aqua.bat");
+        out("schoolai.bat   match.bat      readme.txt");
+        blank();
+        out("12 file(s)");
+        blank(); break;
       case "ver":
         blank();
         out("ISTE 2026 Schedule Kiosk [Version 6.23.2026]");
