@@ -133,6 +133,20 @@
     text-shadow:0 0 7px rgba(43,255,43,0.85);
   }
 
+  /* SoundBlaster 26 install dialog */
+  #sbwin{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:72;display:none;width:min(92vw,560px);
+    background:var(--blue);border:3px solid #ffffff;color:#ffffff;
+    box-shadow:7px 7px 0 rgba(0,0,0,0.55);font-family:"VT323",monospace;
+  }
+  .sb-title{background:#0000cc;border-bottom:2px solid #5555ff;padding:4px 10px;text-align:center;font-size:20px;}
+  .sb-body{padding:16px 18px;font-size:22px;white-space:pre-wrap;min-height:150px;}
+  .sb-btns{margin-top:16px;text-align:center;}
+  .sb-btn{display:inline-block;border:2px outset #fff;background:#c0c0c0;color:#000;
+    padding:2px 18px;margin:0 10px;cursor:pointer;font-family:"VT323",monospace;font-size:22px;}
+  .sb-hint{margin-top:10px;text-align:center;color:var(--cyan);font-size:16px;}
+
   /* WarGames WOPR mode (easter egg) */
   body.woprmode{background:#000;}
   body.woprmode #screen{color:#5fbfff;text-shadow:0 0 6px rgba(95,191,255,0.55);}
@@ -273,6 +287,13 @@
     </div>
   </div>
   <audio id="nedryaudio" src="ahahah.mp3" loop preload="auto"></audio>
+
+  <!-- SoundBlaster 26 install gag -->
+  <div id="sbwin">
+    <div class="sb-title">SoundBlaster 26 Installation</div>
+    <div class="sb-body" id="sbbody"></div>
+  </div>
+  <audio id="sbaudio" src="soundblaster.mp3" preload="auto"></audio>
 
   <div id="overlay"></div>
   <input id="hiddenInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
@@ -623,6 +644,7 @@
     {key:"aqua",     label:"Aqua by Adobe Booth ........... Mon   1:00 PM  #2454"},
     {key:"schoolai", label:"SchoolAI Booth Presentation ... Tue  10:00 AM  #2714"},
     {key:"match",    label:"The Edtech Match Game ......... Fri  10:30 AM  W307CD"},
+    {key:"__sound",  label:"Install SoundBlaster 26 Card"},
     {key:"__exit",   label:"Exit to DOS"}
   ];
   var EXIT_DESC = ["Quit the installer and return to the C:\\> prompt."];
@@ -913,6 +935,7 @@
       d.addEventListener('click', function(){
         menuIndex = i; renderMenu();
         if(item.key==="__exit"){ exitInstaller(); }
+        else if(item.key==="__sound"){ openSoundInstall(); }
         else { renderDetail(item.key); window.scrollTo(0,0); }
       });
       menuBody.appendChild(d);
@@ -932,10 +955,70 @@
       e.preventDefault();
       var item=MENU[menuIndex];
       if(item.key==="__exit"){ exitInstaller(); }
+      else if(item.key==="__sound"){ openSoundInstall(); }
       else { renderDetail(item.key); window.scrollTo(0,0); }
     } else if((e.key==='x'||e.key==='X') && e.ctrlKey){
       e.preventDefault(); exitInstaller();
     }
+  }
+
+  /* ===================== SoundBlaster 26 install gag ===================== */
+  var sbWin   = document.getElementById('sbwin');
+  var sbBody  = document.getElementById('sbbody');
+  var sbAudio = document.getElementById('sbaudio');
+  var sbActive = false;
+  var sbPhase = null;
+
+  function openSoundInstall(){
+    sbActive = true; sbPhase = 'installing';
+    sbWin.style.display = 'block';
+    var width = 28, pct = 0;
+    var head = "Installing SoundBlaster 26 Card...\n\n";
+    sbBody.textContent = head + "[" + repeatCh(".",width) + "]  0%";
+    var iv = setInterval(function(){
+      pct += 5; if(pct > 100) pct = 100;
+      var filled = Math.round(width * pct / 100);
+      sbBody.textContent = head + "[" + repeatCh("#",filled) + repeatCh(".",width-filled) + "]  " + pct + "%";
+      if(pct >= 100){ clearInterval(iv); setTimeout(sbTesting, 500); }
+    }, 80);
+  }
+  function sbTesting(){
+    sbPhase = 'testing';
+    sbBody.textContent = "SoundBlaster 26 Card detected.\n\nTESTING SOUND ...";
+    try{ sbAudio.currentTime = 0; sbAudio.play(); }catch(e){}
+    setTimeout(sbQuestion, 2400);
+  }
+  function sbQuestion(){
+    sbPhase = 'question';
+    sbBody.innerHTML = '';
+    var q = document.createElement('div'); q.textContent = "Did you hear anything?";
+    var btns = document.createElement('div'); btns.className = 'sb-btns';
+    var yes = document.createElement('span'); yes.className = 'sb-btn'; yes.textContent = "Yes";
+    var no  = document.createElement('span'); no.className = 'sb-btn'; no.textContent = "No";
+    yes.addEventListener('click', sbAnswer);
+    no.addEventListener('click', sbAnswer);
+    btns.appendChild(yes); btns.appendChild(no);
+    var hint = document.createElement('div'); hint.className = 'sb-hint'; hint.textContent = "(press Y or N)";
+    sbBody.appendChild(q); sbBody.appendChild(btns); sbBody.appendChild(hint);
+  }
+  function sbAnswer(){
+    sbPhase = 'done';
+    try{ sbAudio.pause(); sbAudio.currentTime = 0; }catch(e){}
+    sbBody.innerHTML = '';
+    var l = document.createElement('div'); l.textContent = "SoundBlaster 26 installed successfully.";
+    sbBody.appendChild(l);
+    setTimeout(closeSoundInstall, 1700);
+  }
+  function closeSoundInstall(){
+    sbActive = false; sbPhase = null;
+    sbWin.style.display = 'none';
+  }
+  function sbKey(e){
+    if(sbPhase === 'question'){
+      if(e.key==='y'||e.key==='Y'||e.key==='n'||e.key==='N'||e.key==='Enter'){
+        e.preventDefault(); sbAnswer();
+      }
+    } else { e.preventDefault(); }
   }
 
   /* ===================== 2004 ALCS installer (install lubinsky) ===================== */
@@ -1076,6 +1159,7 @@
   });
   window.addEventListener('keydown', function(e){
     if(swanScreenActive){ e.preventDefault(); hideSwanScreen(); return; }
+    if(sbActive){ sbKey(e); return; }
     if(installerActive){ installerKey(e); return; }
     if(alcsActive){ alcsKey(e); return; }
     if(!locked) focusInput();
