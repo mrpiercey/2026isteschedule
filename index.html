@@ -666,8 +666,8 @@
     "ISTE BIOS v6.23  (c) 2026 Lubinsky Microsystems","",
     "Detecting hardware ........... OK",
     "Memory Test : 655360 KB OK",
-    "Detecting Primary Master  ... ISTE-SCHEDULE-DRIVE",
-    "Detecting Primary Slave   ... None","",
+    "Detecting Primary Drive   ... ISTE-SCHEDULE-DRIVE",
+    "Detecting Secondary Drive ... None","",
     "Starting MS-DOS...",""
   ];
   function typeBoot(i){
@@ -770,7 +770,7 @@
       }
 
       // Jurassic Park / Nedry
-      if(cmd === "jp" || cmd === "jp.exe" || cmd === "jurassic park" || cmd === "jurassicpark"){
+      if(cmd === "jp" || cmd === "whte_rbt.obj" || cmd === "jurassic park" || cmd === "jurassicpark"){
         openNedry();
         out("Ah ah ah! You didn't say the magic word!");
         blank();
@@ -831,7 +831,7 @@
         out("clarity.bat    radio.bat      aqua.bat");
         out("schoolai.bat   match.bat      readme.txt");
         if(easterEggsUnlocked){
-          out("wopr.exe       lubinsky.exe   jp.exe");
+          out("wopr.exe       lubinsky.exe   whte_rbt.obj");
           out("nedry.exe      numbers.exe");
         }
         blank();
