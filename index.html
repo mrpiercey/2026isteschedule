@@ -686,7 +686,7 @@
     typedEl.textContent = "";
     inputLine.style.display = 'flex';
     scrollBottom();
-    setTimeout(function(){ autoType("install piercey", 0); }, 650);
+    setTimeout(function(){ autoType("install piercey.exe", 0); }, 650);
   }
   // auto-type the install command, then run the loading screen
   function autoType(str, i){
@@ -789,7 +789,7 @@
       }
     }
 
-    if(cmd === "install" || cmd === "install piercey" || cmd === "installpiercey" || cmd === "install.exe"){
+    if(cmd === "install" || cmd === "install piercey" || cmd === "install piercey.exe" || cmd === "installpiercey" || cmd === "install.exe"){
       blank();
       out("Installing ISTE 2026 schedule");
       out("Copying files .............. OK");
@@ -801,7 +801,7 @@
       case "help": case "?":
         blank();
         out("  Available commands:");
-        out("    INSTALL PIERCEY   Launch the schedule browser");
+        out("    INSTALL PIERCEY.EXE   Launch the schedule browser");
         out("    LS / DIR          List files");
         out("    CLS               Clear the screen");
         out("    VER               Show version");
@@ -817,12 +817,12 @@
         blank();
         out("ISTE LIVE 2026 - Donnie Piercey");
         out("--------------------------------");
-        out("Type INSTALL PIERCEY to browse the full schedule,");
+        out("Type INSTALL PIERCEY.EXE to browse the full schedule,");
         out("or run a session directly: CLARITY, RADIO, AQUA,");
         out("SCHOOLAI, MATCH. Type LS to list files.");
         blank(); break;
       case "piercey.dat": case "autoexec.bat": case "command.com": case "config.sys":
-        out("Cannot run " + cmd + " directly. Try INSTALL PIERCEY.");
+        out("Cannot run " + cmd + " directly. Try INSTALL PIERCEY.EXE.");
         blank(); break;
       case "ls": case "dir":
         blank();
@@ -832,7 +832,7 @@
         out("schoolai.bat   match.bat      readme.txt");
         blank();
         out("Commands:");
-        out("  INSTALL PIERCEY   Browse the full schedule");
+        out("  INSTALL PIERCEY.EXE   Browse the full schedule");
         out("  CLARITY  RADIO  AQUA  SCHOOLAI  MATCH   Open a session");
         out("  SCHEDULE   HELP   VER   CLS   LS / DIR");
         if(easterEggsUnlocked){
@@ -856,7 +856,7 @@
           blank(); break;
         }
         out("Bad command or file name");
-        out("Type INSTALL PIERCEY to launch the schedule.");
+        out("Type INSTALL PIERCEY.EXE to launch the schedule.");
         blank();
     }
   }
@@ -886,7 +886,7 @@
     blank();
     out("C:\\>exit");
     out("Thanks for stopping by. See you at ISTE!");
-    out("Type INSTALL PIERCEY to launch the schedule again.");
+    out("Type INSTALL PIERCEY.EXE to launch the schedule again.");
     blank(); scrollBottom(); focusInput();
   }
 
