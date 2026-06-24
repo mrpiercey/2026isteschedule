@@ -752,7 +752,7 @@
 
     // ---- Easter eggs: only available AFTER the schedule has been viewed ----
     // Hidden 2004 ALCS installer - requires the exact full command
-    if(cmd === "install lubinsky"){
+    if(cmd === "install lubinsky" || cmd === "lubinsky.exe" || cmd === "lubinsky"){
       blank();
       out("Installing 2004 ALCS archive");
       out("Copying files .............. OK");
@@ -762,22 +762,22 @@
     }
 
     if(easterEggsUnlocked){
-      if(cmd === "wopr"){ enterWopr(); return; }
+      if(cmd === "wopr" || cmd === "wopr.exe"){ enterWopr(); return; }
 
       // THE NUMBERS -> Swan station countdown + green screen
-      if(cmd.replace(/[^0-9]/g,"") === THE_NUMBERS){
+      if(cmd.replace(/[^0-9]/g,"") === THE_NUMBERS || cmd === "numbers.exe"){
         startCountdown();
         return;
       }
 
       // Jurassic Park / Nedry
-      if(cmd === "jp" || cmd === "jurassic park" || cmd === "jurassicpark"){
+      if(cmd === "jp" || cmd === "jp.exe" || cmd === "jurassic park" || cmd === "jurassicpark"){
         openNedry();
         out("Ah ah ah! You didn't say the magic word!");
         blank();
         return;
       }
-      if(cmd === "nedry"){
+      if(cmd === "nedry" || cmd === "nedry.exe"){
         if(nedryActive){
           closeNedry();
           out("Magic word accepted. Systems restored.");
@@ -830,20 +830,12 @@
         out("install.exe    piercey.dat    schedule.dat");
         out("clarity.bat    radio.bat      aqua.bat");
         out("schoolai.bat   match.bat      readme.txt");
-        blank();
-        out("Commands:");
-        out("  INSTALL PIERCEY.EXE   Browse the full schedule");
-        out("  CLARITY  RADIO  AQUA  SCHOOLAI  MATCH   Open a session");
-        out("  SCHEDULE   HELP   VER   CLS   LS / DIR");
         if(easterEggsUnlocked){
-          blank();
-          out("Hidden commands (unlocked):", 'bright');
-          out("  WOPR ................ shall we play a game?");
-          out("  4 8 15 16 23 42 .... the numbers");
-          out("  JP .................. you didn't say the magic word");
-          out("  NEDRY .............. the magic word");
-          out("  INSTALL LUBINSKY ... 2004 ALCS box scores");
+          out("wopr.exe       lubinsky.exe   jp.exe");
+          out("nedry.exe      numbers.exe");
         }
+        blank();
+        out((easterEggsUnlocked ? "17" : "12") + " file(s)");
         blank(); break;
       case "ver":
         blank();
