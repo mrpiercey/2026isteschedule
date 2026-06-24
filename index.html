@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISTE 2026 - Donnie Piercey Schedule [DOS]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gray:#a8a8a8;        /* CGA light-gray desktop */
+    --blue:#0000aa;        /* CGA blue boxes */
+    --green:#00b400;       /* bright info-box green */
+    --white:#ffffff;
+    --yellow:#ffff55;
+    --cyan:#33ffff;
+    --termfg:#cfcfcf;
+  }
+  *{box-sizing:border-box;}
+  html{height:100%;}
+  body{
+    margin:0;min-height:100%;
+    background:#000;color:var(--termfg);
+    font-family:"VT323","Courier New",monospace;
+    font-size:24px;line-height:1.15;
+    overflow:hidden;cursor:text;
+  }
+
+  /* ============ PHASE 1 : terminal ============ */
+  #crt{position:fixed;inset:0;padding:18px 22px;overflow-y:auto;overflow-x:hidden;}
+  #crt::-webkit-scrollbar{width:0;height:0;}
+  #screen{white-space:pre-wrap;word-break:break-word;max-width:80ch;}
+  .line{min-height:1.15em;}
+  .bright{color:var(--white);}
+  #inputline{display:flex;white-space:pre;}
+  #prompt{color:var(--termfg);}
+  #typed{color:var(--white);}
+  #cursor{display:inline-block;width:0.55ch;height:1em;background:var(--white);
+    margin-left:1px;animation:blink 1s steps(1) infinite;vertical-align:text-bottom;}
+  @keyframes blink{50%{opacity:0;}}
+  #hiddenInput{position:absolute;left:-9999px;opacity:0;width:1px;height:1px;}
+
+  /* ============ PHASE 2 : installer TUI ============ */
+  body.installer{background:var(--gray);overflow:auto;cursor:default;}
+  body.installer #crt{display:none;}
+  #tui{display:none;}
+  body.installer #tui{
+    display:block;color:var(--white);
+    padding:10px 14px 30px;max-width:760px;margin:0 auto;
+  }
+  .titlebar{text-align:center;color:var(--white);padding:2px 0 0;letter-spacing:1px;}
+  .subbar{text-align:center;color:var(--blue);margin-bottom:12px;}
+
+  /* solid green facts box (no border, fixed height) */
+  .greenbox{
+    background:var(--green);color:var(--white);
+    padding:8px 14px;margin:0 0 14px 0;
+    box-shadow:5px 5px 0 rgba(0,0,0,0.35);
+  }
+  #detailBody{height:9.6em;overflow:hidden;white-space:pre-wrap;}
+  .d-title{color:var(--white);}
+  .d-label{color:#003a00;}
+  .d-value{color:var(--white);}
+  .d-hint{color:#003a00;}
+
+  /* blue bordered boxes */
+  .panel{
+    position:relative;background:var(--blue);color:var(--white);
+    border:2px solid var(--white);
+    padding:10px 16px 8px;margin:0 0 14px 0;
+    box-shadow:5px 5px 0 rgba(0,0,0,0.35);
+  }
+  .panel-title{
+    position:absolute;top:-0.6em;left:50%;transform:translateX(-50%);
+    background:var(--blue);padding:0 8px;color:var(--white);white-space:nowrap;
+  }
+  .panel-body{white-space:pre-wrap;}
+  .menu .line{border:1px solid transparent;padding:0 8px;color:#d6d6d6;}
+  .menu .sel{border:1px solid var(--white);color:var(--white);background:#00008f;}
+  #descBody{height:9.2em;overflow:hidden;color:var(--white);}
+
+  .footer{text-align:center;color:var(--blue);margin-top:2px;}
+  .footer .hot{color:#000;}
+
+  /* Swan flip-clock countdown (easter egg) */
+  #swan{position:fixed;top:14px;right:16px;z-index:60;display:none;}
+  .flip-frame{
+    display:inline-flex;gap:3px;padding:10px 12px;border-radius:7px;
+    background:linear-gradient(#caa53d,#9c7b22 45%,#7a5e16);
+    border:2px solid #5c4710;
+    box-shadow:inset 0 2px 4px rgba(255,255,255,0.35),
+               inset 0 -3px 6px rgba(0,0,0,0.5),
+               4px 6px 14px rgba(0,0,0,0.55);
+  }
+  .flip-digit{
+    position:relative;width:34px;height:50px;line-height:50px;text-align:center;
+    font-family:Arial,Helvetica,sans-serif;font-weight:bold;font-size:38px;
+    border-radius:3px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,0.6);
+  }
+  .flip-digit.dark{background:#161616;color:#f4f4f4;}
+  .flip-digit.light{background:#ededed;color:#161616;}
+  .flip-digit.gap{margin-right:9px;}
+  .flip-digit::after{ /* split-flap seam */
+    content:"";position:absolute;left:0;right:0;top:50%;height:1px;
+    background:rgba(0,0,0,0.55);box-shadow:0 1px 0 rgba(255,255,255,0.12);
+  }
+  #swan.failure .flip-frame{animation:swanflash .5s steps(1) infinite;}
+  #swan.failure .flip-digit.dark{color:#ff3b3b;}
+  @keyframes swanflash{50%{opacity:0.35;}}
+
+  /* Swan computer green screen (easter egg) */
+  #swanscreen{
+    position:fixed;inset:0;z-index:40;display:none;
+    background:#000;color:#2bff2b;
+    font-family:"VT323",monospace;font-size:30px;line-height:1.25;
+    padding:34px 40px;white-space:pre-wrap;
+    text-shadow:0 0 7px rgba(43,255,43,0.85);
+  }
+
+  /* WarGames WOPR mode (easter egg) */
+  body.woprmode{background:#000;}
+  body.woprmode #screen{color:#5fbfff;text-shadow:0 0 6px rgba(95,191,255,0.55);}
+  body.woprmode #typed{color:#a6e0ff;}
+  body.woprmode #cursor{background:#a6e0ff;}
+
+  /* Jurassic Park / Nedry popup (easter egg) */
+  #jpwin{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:70;display:none;width:min(90vw,520px);
+    background:#c0c0c0;border:3px outset #ffffff;
+    box-shadow:7px 7px 0 rgba(0,0,0,0.55);
+    font-family:Arial,Helvetica,sans-serif;
+  }
+  .jp-title{
+    display:flex;justify-content:space-between;align-items:center;
+    background:linear-gradient(90deg,#00007a,#1084d0);color:#fff;
+    font-weight:bold;font-size:16px;padding:4px 8px;
+  }
+  .jp-x{
+    border:2px outset #fff;background:#c0c0c0;color:#000;
+    padding:0 7px;font-family:monospace;cursor:pointer;
+  }
+  .jp-body{padding:10px;text-align:center;background:#000;}
+  #jpgif{max-width:100%;display:block;margin:0 auto;}
+  .jp-cap{color:#39ff14;font-family:"VT323",monospace;font-size:26px;margin-top:8px;}
+  .jp-hint{color:#9a9a9a;font-family:"VT323",monospace;font-size:18px;margin-top:2px;}
+
+  /* scanline + vignette overlay */
+  #overlay{
+    pointer-events:none;position:fixed;inset:0;z-index:50;
+    background:
+      linear-gradient(rgba(18,18,18,0) 50%, rgba(0,0,0,0.10) 50%),
+      radial-gradient(ellipse at center, rgba(0,0,0,0) 65%, rgba(0,0,0,0.30) 100%);
+    background-size:100% 3px, 100% 100%;
+    animation:flicker 8s infinite;
+  }
+  @keyframes flicker{0%,100%{opacity:1;}96%{opacity:1;}97%{opacity:0.95;}98%{opacity:1;}}
+</style>
+</head>
+<body>
+
+  <!-- PHASE 1: DOS terminal -->
+  <div id="crt">
+    <div id="screen"></div>
+    <div id="inputline" style="display:none">
+      <span id="prompt">C:\&gt;</span><span id="typed"></span><span id="cursor"></span>
+    </div>
+  </div>
+
+  <!-- PHASE 2: Installer TUI -->
+  <div id="tui">
+    <div class="titlebar">ISTE Live 2026 - Donnie Piercey Schedule Installation Program</div>
+    <div class="subbar">Orange County Convention Center - Orlando, FL</div>
+
+    <div class="greenbox">
+      <div id="detailBody"></div>
+    </div>
+
+    <div class="panel menu">
+      <div class="panel-title">&#9552;&#9552; MAIN MENU &#9552;&#9552;</div>
+      <div class="panel-body" id="menuBody"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">&#9552;&#9552; Description &#9552;&#9552;</div>
+      <div class="panel-body" id="descBody"></div>
+    </div>
+
+    <div class="footer">Press <span class="hot">&lt;Up/Down&gt;</span> to Move &nbsp; <span class="hot">&lt;Enter&gt;</span> to Load &nbsp; <span class="hot">&lt;Ctrl-X&gt;</span> to Exit</div>
+  </div>
+
+  <!-- Swan station flip-clock countdown (easter egg) -->
+  <div id="swan">
+    <div class="flip-frame">
+      <span class="flip-digit dark">1</span>
+      <span class="flip-digit dark">0</span>
+      <span class="flip-digit dark gap">8</span>
+      <span class="flip-digit light">0</span>
+      <span class="flip-digit light">0</span>
+    </div>
+  </div>
+
+  <!-- Swan computer green screen (easter egg) -->
+  <div id="swanscreen"><div id="swantext"></div></div>
+
+  <!-- Jurassic Park / Nedry popup (easter egg) -->
+  <div id="jpwin">
+    <div class="jp-title"><span>magicword.exe</span><span class="jp-x">X</span></div>
+    <div class="jp-body">
+      <img id="jpgif" src="magicword.gif" alt="ah ah ah">
+      <div class="jp-cap">ah ah ah!  You didn't say the magic word!</div>
+    </div>
+  </div>
+  <audio id="nedryaudio" src="ahahah.mp3" loop preload="auto"></audio>
+
+  <div id="overlay"></div>
+  <input id="hiddenInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+
+<script>
+(function(){
+  "use strict";
+
+  var crt       = document.getElementById('crt');
+  var screenEl  = document.getElementById('screen');
+  var inputLine = document.getElementById('inputline');
+  var typedEl   = document.getElementById('typed');
+  var promptEl  = document.getElementById('prompt');
+  var hidden    = document.getElementById('hiddenInput');
+  var detailBody= document.getElementById('detailBody');
+  var menuBody  = document.getElementById('menuBody');
+  var descBody  = document.getElementById('descBody');
+
+  var lastSession = null;
+  var history = [];
+  var histIndex = 0;
+  var locked = true;
+  var installerActive = false;
+  var menuIndex = 0;
+  var easterEggsUnlocked = false;   // unlocked only after Exit to DOS
+
+  /* ---------- Swan station easter egg ---------- */
+  var swanEl     = document.getElementById('swan');
+  var flipDigits = swanEl.querySelectorAll('.flip-digit');
+  var swanScreen = document.getElementById('swanscreen');
+  var swanText   = document.getElementById('swantext');
+  var swanRemaining = 0;
+  var swanTimer = null;
+  var swanScreenActive = false;
+  var THE_NUMBERS = "4815162342"; // 4 8 15 16 23 42
+
+  function pad2(n){ return (n<10?"0":"") + n; }
+  function pad3(n){ n=String(n); while(n.length<3) n="0"+n; return n; }
+
+  function renderSwan(){
+    var m = Math.floor(swanRemaining/60);
+    var s = swanRemaining % 60;
+    var str = pad3(m) + pad2(s);   // 5 flap digits: MMMSS
+    for(var i=0;i<flipDigits.length;i++){ flipDigits[i].textContent = str.charAt(i); }
+  }
+  function startCountdown(){
+    swanRemaining = 108*60;          // 108 minutes
+    swanEl.classList.remove('failure');
+    swanEl.style.display = 'block';
+    renderSwan();
+    if(swanTimer) clearInterval(swanTimer);
+    swanTimer = setInterval(tickSwan, 1000);
+    showSwanScreen('reset');
+  }
+  function tickSwan(){
+    swanRemaining--;
+    if(swanRemaining <= 0){
+      swanRemaining = 0; renderSwan();
+      clearInterval(swanTimer); swanTimer = null;
+      swanEl.classList.add('failure');
+      showSwanScreen('failure');
+      return;
+    }
+    renderSwan();
+  }
+  function showSwanScreen(mode){
+    var lines;
+    if(mode === 'failure'){
+      lines = [
+        ">:4 8 15 16 23 42",
+        ">:EXECUTE",
+        "",
+        ">:WARNING ... SYSTEM FAILURE",
+        ">:WARNING ... SYSTEM FAILURE",
+        "",
+        "  3 0 4 2 3 1    1 6 5 4 2 3    8 4 7 7 6",
+        "",
+        "[ Press any key to continue ]"
+      ];
+    } else {
+      lines = [
+        ">:4 8 15 16 23 42",
+        ">:EXECUTE",
+        "",
+        ">:ACCEPTED",
+        ">:SYSTEM TIMER RESET ... 108:00",
+        "",
+        "",
+        "[ Press any key to continue ]"
+      ];
+    }
+    swanText.textContent = lines.join("\n");
+    swanScreen.style.display = 'block';
+    swanScreenActive = true;
+    hidden.value = ""; typedEl.textContent = "";   // clear any half-typed input
+  }
+  function hideSwanScreen(){
+    swanScreen.style.display = 'none';
+    swanScreenActive = false;
+    focusInput();
+  }
+  /* ---------- Jurassic Park / Nedry easter egg ---------- */
+  var jpWin      = document.getElementById('jpwin');
+  var nedryAudio = document.getElementById('nedryaudio');
+  var nedryActive = false;
+
+  function openNedry(){
+    jpWin.style.display = 'block';
+    nedryActive = true;
+    try{ nedryAudio.currentTime = 0; nedryAudio.play(); }catch(e){}
+  }
+  function closeNedry(){
+    jpWin.style.display = 'none';
+    nedryActive = false;
+    try{ nedryAudio.pause(); nedryAudio.currentTime = 0; }catch(e){}
+  }
+  // clicking the X just taunts you again
+  document.querySelector('.jp-x').addEventListener('click', function(ev){
+    ev.stopPropagation();
+    try{ nedryAudio.currentTime = 0; nedryAudio.play(); }catch(e){}
+  });
+
+  /* ---------- WarGames WOPR easter egg ---------- */
+  var woprState = null;
+  var WOPR_GAMES = [
+    "falken's maze","black jack","gin rummy","hearts","bridge","checkers",
+    "chess","poker","fighter combat","guerrilla engagement","desert warfare",
+    "air-to-ground actions","theaterwide tactical warfare",
+    "theaterwide biotoxic and chemical warfare"
+  ];
+
+  function enterWopr(){
+    screenEl.innerHTML = "";
+    document.body.classList.add('woprmode');
+    promptEl.textContent = "";
+    woprState = 'askplay';
+    out(""); out("");
+    out("SHALL WE PLAY A GAME?");
+    out("");
+    scrollBottom();
+  }
+  function exitWopr(){
+    woprState = null;
+    document.body.classList.remove('woprmode');
+    promptEl.innerHTML = "C:\\&gt;";
+    blank(); scrollBottom(); focusInput();
+  }
+  function woprMenu(){
+    out(""); out("GREETINGS PROFESSOR FALKEN.");
+    out(""); out("LIST OF GAMES:"); out("");
+    out("FALKEN'S MAZE");
+    out("BLACK JACK");
+    out("GIN RUMMY");
+    out("HEARTS");
+    out("BRIDGE");
+    out("CHECKERS");
+    out("CHESS");
+    out("POKER");
+    out("FIGHTER COMBAT");
+    out("GUERRILLA ENGAGEMENT");
+    out("DESERT WARFARE");
+    out("AIR-TO-GROUND ACTIONS");
+    out("THEATERWIDE TACTICAL WARFARE");
+    out("THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE");
+    out("");
+    out("GLOBAL THERMONUCLEAR WAR");
+    out("");
+    woprState = 'menu';
+    scrollBottom();
+  }
+  function woprAskSide(){
+    out(""); out("WHICH SIDE DO YOU WANT?");
+    out(""); out("  1.  UNITED STATES");
+    out("  2.  SOVIET UNION");
+    out(""); out("PLEASE CHOOSE ONE:");
+    woprState = 'gtw_side';
+  }
+  function woprRunGTW(){
+    woprState = 'gtw_running';
+    out(""); out("WAR OPERATION PLAN RESPONSE");
+    out(""); out("SIMULATION IN PROGRESS..."); out("");
+    var scen = [
+      "UNITED STATES FIRST STRIKE ......... WINNER: NONE",
+      "USSR FIRST STRIKE .................. WINNER: NONE",
+      "NATO / WARSAW PACT ................. WINNER: NONE",
+      "FAR EAST STRATEGY .................. WINNER: NONE",
+      "US / USSR ESCALATION ............... WINNER: NONE",
+      "MEDITERRANEAN ESCALATION ........... WINNER: NONE",
+      "THEATERWIDE TACTICAL WARFARE ....... WINNER: NONE",
+      "THEATERWIDE BIOTOXIC / CHEMICAL .... WINNER: NONE",
+      "GLOBAL THERMONUCLEAR WAR ........... WINNER: NONE"
+    ];
+    var i = 0;
+    var iv = setInterval(function(){
+      if(i < scen.length){ out(scen[i]); i++; scrollBottom(); return; }
+      clearInterval(iv);
+      setTimeout(function(){
+        out("");
+        out("A STRANGE GAME.");
+        out("THE ONLY WINNING MOVE IS NOT TO PLAY.");
+        out("");
+        out("HOW ABOUT A NICE GAME OF CHESS?");
+        out("");
+        scrollBottom();
+        setTimeout(exitWopr, 2200);
+      }, 800);
+    }, 320);
+  }
+
+  function handleWopr(raw){
+    var a = raw.trim().toLowerCase().replace(/\s+/g,' ');
+    out(raw.toUpperCase());   // echo input in WOPR style
+
+    if(a === 'exit' || a === 'logoff' || a === 'logout'){
+      out(""); out("LOGOFF COMPLETE."); exitWopr(); return;
+    }
+
+    switch(woprState){
+      case 'askplay':
+        if(a === 'yes' || a === 'y'){ out(""); out("PASSWORD:"); woprState = 'askpass'; }
+        else if(a === 'no' || a === 'n'){ out(""); out("MAYBE ANOTHER TIME."); exitWopr(); }
+        else { out(""); out("SHALL WE PLAY A GAME?  (YES / NO)"); }
+        break;
+
+      case 'askpass':
+        if(a === 'joshua'){ woprMenu(); }
+        else { out(""); out("IDENTIFICATION NOT RECOGNIZED BY SYSTEM."); out(""); out("PASSWORD:"); }
+        break;
+
+      case 'menu':
+        if(a === 'global thermonuclear war' || a === 'gtw' || a === 'global thermonuclear'){
+          out(""); out("WOULDN'T YOU PREFER A GOOD GAME OF CHESS?");
+          woprState = 'gtw_chess';
+        } else if(a === 'list' || a === 'games' || a === 'list games'){
+          woprMenu();
+        } else if(WOPR_GAMES.indexOf(a) !== -1){
+          out(""); out("PASSWORD:"); woprState = 'askgamepass';
+        } else {
+          out(""); out("THAT IS NOT ONE OF THE AVAILABLE GAMES.");
+        }
+        break;
+
+      case 'askgamepass':
+        out(""); out("PASSWORD INCORRECT.");
+        out(""); out("SELECT ANOTHER GAME, OR TYPE LIST.");
+        woprState = 'menu';
+        break;
+
+      case 'gtw_chess':
+        out(""); out("FINE."); woprAskSide();
+        break;
+
+      case 'gtw_side':
+        out(""); out("AWAITING FIRST STRIKE COMMAND");
+        out("-----------------------------"); out("");
+        out("PLEASE LIST PRIMARY TARGETS BY");
+        out("CITY AND/OR COUNTRY NAME:");
+        woprState = 'gtw_targets';
+        break;
+
+      case 'gtw_targets':
+        woprRunGTW();
+        break;
+
+      case 'gtw_running':
+        break; // ignore input during simulation
+    }
+    scrollBottom();
+  }
+
+  /* ---------- session data ---------- */
+  var SESSIONS = {
+    clarity:{
+      title:["From Clicks to Clarity:","Teaching Smarter News Literacy with AI"],
+      date:"Sunday, June 28", time:"12:00 PM - 1:00 PM", location:"OCCC, W206A",
+      presenters:"Donnie Piercey and Kimberly Zajac", note:"",
+      desc:[
+        "AI shapes what students see - but it doesn't shape",
+        "how they think. Join this panel session to explore",
+        "strategies, tools and resources for teaching smarter",
+        "news literacy, ethical research, and critical inquiry.",
+        "Equip students with the skills to navigate, question,",
+        "and clarify information in an AI-powered world."
+      ]
+    },
+    radio:{
+      title:["Beyond Pressing Play:","Using Radio Dramas to Teach Content"],
+      date:"Monday, June 29", time:"10:30 AM - 11:30 AM", location:"OCCC, W109B",
+      presenters:"Donnie Piercey", note:"",
+      desc:[
+        "Discover how an elementary teacher uses podcasting",
+        "to turn student storytelling into old-school radio",
+        "dramas. Learn how to guide students through scripting,",
+        "voice acting, and producing their own audio stories.",
+        "Attendees leave with practical tools and ideas they",
+        "can use right away in any K-5 classroom."
+      ]
+    },
+    aqua:{
+      title:["Aqua by Adobe Booth:","Swimming in the Deep End"],
+      date:"Monday, June 29", time:"1:00 PM - 5:00 PM", location:"Booth #2454",
+      presenters:"Donnie Piercey", note:"Presenting at 1:30 PM and 3:00 PM",
+      desc:[
+        "Adobe Aqua in the Upper Elementary.",
+        "",
+        "Want to see how Adobe Aqua can be used for more than",
+        "just indoor recess filler? Come learn how Donnie",
+        "Piercey, the 2021 Kentucky Teacher of the Year, uses",
+        "Aqua to bring creativity, engagement, and a little",
+        "bit of classroom magic into his 5th grade classroom."
+      ]
+    },
+    schoolai:{
+      title:["SchoolAI Booth Presentation:","Why Yes, You Can Use SchoolAI"],
+      date:"Tuesday, June 30", time:"10:00 AM", location:"Booth #2714",
+      presenters:"Donnie Piercey", note:"",
+      desc:[
+        "Featured speaker booth session:",
+        "Why yes, you can use SchoolAI in Elementary School!",
+        "",
+        "Come learn how to use SchoolAI in the elementary",
+        "school! From lesson ideas to connecting content."
+      ]
+    },
+    match:{
+      title:["The Edtech Match Game:","AI & ISTE Standards Edition"],
+      date:"Friday", time:"10:30 AM", location:"Room W307CD",
+      presenters:"Bellow, Miller, Phyall, Provenzano, Williams, Dembo", note:"",
+      desc:[
+        "Join a live, game show-style session where edtech",
+        "leaders reimagine the Match Game. Through playful",
+        "prompts tied to the ISTE Standards, participants",
+        "explore practical uses of AI for creativity, digital",
+        "citizenship, and personalized learning. Expect humor,",
+        "interaction, and concrete student-centered strategies."
+      ]
+    }
+  };
+
+  var MENU = [
+    {key:"clarity",  label:"From Clicks to Clarity ......... Sun  12:00 PM  W206A"},
+    {key:"radio",    label:"Beyond Pressing Play .......... Mon  10:30 AM  W109B"},
+    {key:"aqua",     label:"Aqua by Adobe Booth ........... Mon   1:00 PM  #2454"},
+    {key:"schoolai", label:"SchoolAI Booth Presentation ... Tue  10:00 AM  #2714"},
+    {key:"match",    label:"The Edtech Match Game ......... Fri  10:30 AM  W307CD"},
+    {key:"__exit",   label:"Exit to DOS"}
+  ];
+  var EXIT_DESC = ["Quit the installer and return to the C:\\> prompt."];
+
+  var BAR  = "===============================================================";
+
+  /* ===================== PHASE 1 helpers ===================== */
+  function out(text, cls){
+    var div = document.createElement('div');
+    div.className = 'line' + (cls ? ' ' + cls : '');
+    div.textContent = (text === undefined ? "" : text);
+    screenEl.appendChild(div);
+  }
+  function blank(){ out(""); }
+  function scrollBottom(){ crt.scrollTop = crt.scrollHeight; }
+  function padRight(str,len){ str=String(str); while(str.length<len) str+=" "; return str; }
+
+  /* ===================== boot sequence ===================== */
+  var bootLines = [
+    "ISTE BIOS v6.23  (c) 2026 Piercey Microsystems","",
+    "Detecting hardware ........... OK",
+    "Memory Test : 655360 KB OK",
+    "Detecting Primary Master  ... ISTE-SCHEDULE-DRIVE",
+    "Detecting Primary Slave   ... None","",
+    "Starting MS-DOS...",""
+  ];
+  function typeBoot(i){
+    if(i < bootLines.length){
+      out(bootLines[i]); scrollBottom();
+      setTimeout(function(){ typeBoot(i+1); }, 180);
+    } else { setTimeout(welcome, 320); }
+  }
+  function welcome(){
+    out(BAR);
+    out("        ISTE LIVE 2026  -  DONNIE PIERCEY SCHEDULE", 'bright');
+    out(BAR); blank();
+    out("  Schedule installation disk detected in drive C:."); blank();
+    out("  To install and browse Donnie's ISTE schedule, type:"); blank();
+    out("        INSTALL PIERCEY", 'bright'); blank();
+    out("  ...then press ENTER."); blank();
+    locked = false;
+    inputLine.style.display = 'flex';
+    scrollBottom(); focusInput();
+  }
+
+  /* ===================== command processing (phase 1) ===================== */
+  function runCommand(raw){
+    if(woprState){ handleWopr(raw); return; }
+    var cmd = raw.trim().toLowerCase().replace(/\s+/g,' ');
+    out("C:\\>" + raw);
+    if(cmd === ""){ blank(); return; }
+
+    // ---- Easter eggs: only available AFTER the schedule has been viewed ----
+    if(easterEggsUnlocked){
+      if(cmd === "wopr"){ enterWopr(); return; }
+
+      // THE NUMBERS -> Swan station countdown + green screen
+      if(cmd.replace(/[^0-9]/g,"") === THE_NUMBERS){
+        startCountdown();
+        return;
+      }
+
+      // Jurassic Park / Nedry
+      if(cmd === "jp" || cmd === "jurassic park" || cmd === "jurassicpark"){
+        openNedry();
+        out("Ah ah ah! You didn't say the magic word!");
+        blank();
+        return;
+      }
+      if(cmd === "nedry"){
+        if(nedryActive){
+          closeNedry();
+          out("Magic word accepted. Systems restored.");
+        } else {
+          out("...ah ah ah! (nothing to unlock right now)");
+        }
+        blank();
+        return;
+      }
+    }
+
+    if(cmd === "install" || cmd.indexOf("install") === 0){
+      blank();
+      out("Installing ISTE 2026 schedule");
+      out("Copying files .............. OK");
+      out("Launching schedule browser...");
+      setTimeout(launchInstaller, 650);
+      return;
+    }
+    switch(cmd){
+      case "help": case "?":
+        blank();
+        out("  Available commands:");
+        out("    INSTALL PIERCEY   Launch the schedule browser");
+        out("    CLS               Clear the screen");
+        out("    VER               Show version");
+        blank(); break;
+      case "cls": case "clear": screenEl.innerHTML=""; break;
+      case "ver":
+        blank();
+        out("ISTE 2026 Schedule Kiosk [Version 6.23.2026]");
+        out("(c) Donnie Piercey - Built in glorious text mode");
+        blank(); break;
+      default:
+        if(nedryActive){
+          out("Ah ah ah! You didn't say the magic word!");
+          blank(); break;
+        }
+        out("Bad command or file name");
+        out("Type INSTALL PIERCEY to launch the schedule.");
+        blank();
+    }
+  }
+
+  /* ===================== PHASE 2 : installer TUI ===================== */
+  function launchInstaller(){
+    installerActive = true; locked = true; hidden.blur();
+    document.body.classList.add('installer');
+    menuIndex = 0;
+    renderMenu(); renderDesc(); renderDetailPlaceholder();
+    window.scrollTo(0,0);
+  }
+  function exitInstaller(){
+    installerActive = false;
+    document.body.classList.remove('installer');
+    locked = false;
+    easterEggsUnlocked = true;   // schedule has been viewed -> unlock secrets
+    blank();
+    out("C:\\>exit");
+    out("Thanks for stopping by. See you at ISTE!");
+    out("Type INSTALL PIERCEY to launch the schedule again.");
+    blank(); scrollBottom(); focusInput();
+  }
+
+  function makeDiv(text, cls){
+    var d = document.createElement('div');
+    d.className = 'line' + (cls ? ' ' + cls : '');
+    d.textContent = text; return d;
+  }
+  function detailRow(label, value){
+    var d = document.createElement('div'); d.className='line';
+    var l=document.createElement('span'); l.className='d-label'; l.textContent=padRight(label,11);
+    var v=document.createElement('span'); v.className='d-value'; v.textContent=value;
+    d.appendChild(l); d.appendChild(v); return d;
+  }
+  function renderDetailPlaceholder(){
+    detailBody.innerHTML='';
+    detailBody.appendChild(makeDiv("Highlight a session in the MAIN MENU below", 'd-hint'));
+    detailBody.appendChild(makeDiv("and press ENTER to load it here.", 'd-hint'));
+    detailBody.appendChild(makeDiv(""));
+    detailBody.appendChild(makeDiv("Title, date, time, location, and speakers", 'd-hint'));
+    detailBody.appendChild(makeDiv("will appear in this green panel.", 'd-hint'));
+  }
+  function renderDetail(key){
+    var s=SESSIONS[key]; lastSession=key;
+    detailBody.innerHTML='';
+    s.title.forEach(function(t){ detailBody.appendChild(makeDiv(t,'d-title')); });
+    detailBody.appendChild(makeDiv(""));
+    detailBody.appendChild(detailRow("Date", s.date));
+    detailBody.appendChild(detailRow("Time", s.time));
+    detailBody.appendChild(detailRow("Location", s.location));
+    if(s.note)       detailBody.appendChild(detailRow("Note", s.note));
+    if(s.presenters) detailBody.appendChild(detailRow("Speakers", s.presenters));
+  }
+  function renderMenu(){
+    menuBody.innerHTML='';
+    MENU.forEach(function(item,i){
+      menuBody.appendChild(makeDiv(item.label, i===menuIndex ? 'sel' : ''));
+    });
+  }
+  function renderDesc(){
+    var item=MENU[menuIndex];
+    var lines = (item.key==="__exit") ? EXIT_DESC : SESSIONS[item.key].desc;
+    descBody.innerHTML='';
+    lines.forEach(function(l){ descBody.appendChild(makeDiv(l)); });
+  }
+
+  function installerKey(e){
+    if(e.key==='ArrowUp'){
+      e.preventDefault();
+      menuIndex=(menuIndex-1+MENU.length)%MENU.length;
+      renderMenu(); renderDesc();
+    } else if(e.key==='ArrowDown'){
+      e.preventDefault();
+      menuIndex=(menuIndex+1)%MENU.length;
+      renderMenu(); renderDesc();
+    } else if(e.key==='Enter'){
+      e.preventDefault();
+      var item=MENU[menuIndex];
+      if(item.key==="__exit"){ exitInstaller(); }
+      else { renderDetail(item.key); window.scrollTo(0,0); }
+    } else if((e.key==='x'||e.key==='X') && e.ctrlKey){
+      e.preventDefault(); exitInstaller();
+    }
+  }
+
+  /* ===================== input wiring ===================== */
+  function focusInput(){ if(!installerActive && !swanScreenActive) hidden.focus(); }
+  document.addEventListener('click', function(){
+    if(swanScreenActive){ hideSwanScreen(); return; }
+    focusInput();
+  });
+  window.addEventListener('keydown', function(e){
+    if(swanScreenActive){ e.preventDefault(); hideSwanScreen(); return; }
+    if(installerActive){ installerKey(e); return; }
+    if(!locked) focusInput();
+  });
+  hidden.addEventListener('input', function(){ typedEl.textContent=hidden.value; scrollBottom(); });
+  hidden.addEventListener('keydown', function(e){
+    if(locked||installerActive||swanScreenActive){ return; }
+    if(e.key==='Enter'){
+      e.preventDefault();
+      var val=hidden.value;
+      if(val.trim()!=="") history.push(val);
+      histIndex=history.length;
+      hidden.value=""; typedEl.textContent="";
+      runCommand(val); scrollBottom();
+    } else if(e.key==='ArrowUp'){
+      e.preventDefault();
+      if(history.length){ histIndex=Math.max(0,histIndex-1); hidden.value=history[histIndex]||""; typedEl.textContent=hidden.value; }
+    } else if(e.key==='ArrowDown'){
+      e.preventDefault();
+      if(history.length){ histIndex=Math.min(history.length,histIndex+1); hidden.value=history[histIndex]||""; typedEl.textContent=hidden.value; }
+    }
+  });
+
+  /* ===================== go ===================== */
+  typeBoot(0);
+  focusInput();
+})();
+</script>
+</body>
+</html>
