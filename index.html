@@ -175,6 +175,9 @@
   /* menu rows are tappable on touch devices */
   .menu .line{cursor:pointer;}
 
+  /* big ASCII boot banner */
+  .asciiart{white-space:pre;font-size:18px;line-height:1.05;}
+
   /* ============ MOBILE / small screens ============ */
   @media (max-width: 760px){
     body{font-size:18px;}
@@ -192,6 +195,7 @@
     /* bigger tap targets in the menu */
     .menu .line{padding:6px 8px;}
     .footer{font-size:14px;}
+    .asciiart{font-size:9px;}
     /* ALCS box score: shrink and allow horizontal scroll */
     #alcsDetail{height:auto;font-size:13px;overflow-x:auto;overflow-y:hidden;}
     #alcsDesc{height:auto;}
@@ -1095,7 +1099,34 @@
     }
   });
 
+  /* ===================== big ASCII boot banner ===================== */
+  var FONT = {
+    'I':["IIIII","  I  ","  I  ","  I  ","IIIII"],
+    'S':["SSSSS","S    ","SSSSS","    S","SSSSS"],
+    'T':["TTTTT","  T  ","  T  ","  T  ","  T  "],
+    'E':["EEEEE","E    ","EEEE ","E    ","EEEEE"],
+    '2':["22222","    2","22222","2    ","22222"],
+    '0':["00000","0   0","0   0","0   0","00000"],
+    '6':["66666","6    ","66666","6   6","66666"],
+    ' ':["   ","   ","   ","   ","   "]
+  };
+  function banner(text){
+    var rows = ["","","","",""];
+    for(var c=0;c<text.length;c++){
+      var g = FONT[text.charAt(c)] || FONT[' '];
+      for(var r=0;r<5;r++){ rows[r] += g[r] + " "; }
+    }
+    return rows;
+  }
+  function renderBanner(){
+    banner("ISTE 2026").forEach(function(row){
+      addLine(row).className = 'line asciiart bright';
+    });
+    addLine("");
+  }
+
   /* ===================== go ===================== */
+  renderBanner();
   typeBoot(0);
   focusInput();
 })();
