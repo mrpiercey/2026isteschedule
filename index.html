@@ -57,7 +57,7 @@
   #monitorwrap.off #poweroff{display:block;}
   /* power LED sitting on the monitor's power button */
   #powerbtn{
-    position:absolute;left:87%;top:91.4%;transform:translate(-50%,-50%);
+    position:absolute;left:89%;top:93.2%;transform:translate(-50%,-50%);
     width:clamp(30px,3.4vw,56px);height:clamp(30px,3.4vw,56px);border-radius:50%;
     cursor:pointer;display:flex;align-items:center;justify-content:center;
     background:transparent;z-index:5;
@@ -960,6 +960,23 @@
   }
 
   /* ===================== misc fun commands ===================== */
+  function printSession(key){
+    var s = SESSIONS[key];
+    blank();
+    out("===============================================================");
+    s.title.forEach(function(t){ out("  " + t, 'bright'); });
+    out("===============================================================");
+    blank();
+    out("  Date . . . : " + s.date);
+    out("  Time . . . : " + s.time);
+    out("  Location . : " + s.location);
+    if(s.note)       out("  Note . . . : " + s.note);
+    if(s.presenters) out("  Speakers . : " + s.presenters);
+    blank();
+    out("  Description:");
+    s.desc.forEach(function(l){ if(l === "") blank(); else out("  " + l); });
+    blank();
+  }
   function printReadme(){
     blank();
     out("ISTE LIVE 2026 - Donnie Piercey");
@@ -1501,11 +1518,11 @@
         blank(); break;
       case "cls": case "clear": screenEl.innerHTML=""; break;
       case "exit": case "quit": blank(); break;
-      case "clarity": case "clarity.bat": openSchedule("clarity"); break;
-      case "radio": case "radio.bat": openSchedule("radio"); break;
-      case "aqua": case "aqua.bat": openSchedule("aqua"); break;
-      case "schoolai": case "schoolai.bat": openSchedule("schoolai"); break;
-      case "match": case "match.bat": openSchedule("match"); break;
+      case "clarity": case "clarity.bat": printSession("clarity"); break;
+      case "radio": case "radio.bat": printSession("radio"); break;
+      case "aqua": case "aqua.bat": printSession("aqua"); break;
+      case "schoolai": case "schoolai.bat": printSession("schoolai"); break;
+      case "match": case "match.bat": printSession("match"); break;
       case "schedule": case "schedule.bat": case "schedule.dat": openSchedule(); break;
       case "readme": case "readme.txt": printReadme(); break;
       case "sl": playSL(); break;
