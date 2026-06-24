@@ -36,8 +36,7 @@
   #inputline{display:flex;white-space:pre;}
   #prompt{color:var(--termfg);}
   #typed{color:var(--white);}
-  #cursor{display:inline-block;width:0.55ch;height:1em;background:var(--white);
-    margin-left:1px;animation:blink 1s steps(1) infinite;vertical-align:text-bottom;}
+  #cursor{color:var(--white);animation:blink 1s steps(1) infinite;}
   @keyframes blink{50%{opacity:0;}}
   #hiddenInput{position:fixed;bottom:0;left:0;width:100%;height:1px;opacity:0;
     border:0;padding:0;margin:0;background:transparent;color:transparent;
@@ -151,7 +150,7 @@
   body.woprmode{background:#000;}
   body.woprmode #screen{color:#5fbfff;text-shadow:0 0 6px rgba(95,191,255,0.55);}
   body.woprmode #typed{color:#a6e0ff;}
-  body.woprmode #cursor{background:#a6e0ff;}
+  body.woprmode #cursor{color:#a6e0ff;}
 
   /* Jurassic Park / Nedry popup (easter egg) */
   #jpwin{
@@ -227,7 +226,7 @@
   <div id="crt">
     <div id="screen"></div>
     <div id="inputline" style="display:none">
-      <span id="prompt">C:\&gt;</span><span id="typed"></span><span id="cursor"></span>
+      <span id="prompt">C:\&gt;</span><span id="typed"></span><span id="cursor">_</span>
     </div>
   </div>
 
