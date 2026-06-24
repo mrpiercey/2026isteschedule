@@ -146,6 +146,32 @@
     padding:2px 18px;margin:0 10px;cursor:pointer;font-family:"VT323",monospace;font-size:22px;}
   .sb-hint{margin-top:10px;text-align:center;color:var(--cyan);font-size:16px;}
 
+  /* sl steam locomotive (easter egg) */
+  #sl{position:fixed;inset:0;z-index:55;display:none;overflow:hidden;pointer-events:none;}
+  #sl pre{position:absolute;top:42%;left:0;white-space:pre;color:var(--termfg);
+    font-size:16px;line-height:1.05;text-shadow:0 0 4px rgba(207,207,207,0.4);
+    animation:sltrain 3.3s linear;}
+  @keyframes sltrain{from{transform:translateX(100vw);}to{transform:translateX(-130%);}}
+
+  /* DOOM emoji chaos (easter egg) */
+  #doom{position:fixed;inset:0;z-index:57;display:none;overflow:hidden;pointer-events:none;}
+  .doom-e{position:absolute;animation:doomfloat 3s linear infinite;}
+  @keyframes doomfloat{
+    0%{transform:translate(0,0) rotate(0deg);}
+    25%{transform:translate(60px,-50px) rotate(90deg);}
+    50%{transform:translate(-50px,60px) rotate(180deg);}
+    75%{transform:translate(45px,45px) rotate(270deg);}
+    100%{transform:translate(0,0) rotate(360deg);}
+  }
+
+  /* fake Windows blue screen (easter egg) */
+  #bsod{position:fixed;inset:0;z-index:56;display:none;background:#0000aa;color:#fff;
+    font-family:"VT323",monospace;font-size:26px;line-height:1.4;padding:40px;}
+  #bsod .bsod-box{max-width:760px;margin:8vh auto 0;}
+  #bsod .bsod-title{background:#aaaaaa;color:#0000aa;display:inline-block;
+    padding:0 10px;margin:0 auto 22px;}
+  #bsod p{margin:0 0 18px 0;}
+
   /* WarGames WOPR mode (easter egg) */
   body.woprmode{background:#000;}
   body.woprmode #screen{color:#5fbfff;text-shadow:0 0 6px rgba(95,191,255,0.55);}
@@ -294,6 +320,28 @@
   </div>
   <audio id="sbaudio" src="soundblaster.mp3" preload="auto"></audio>
 
+  <!-- sl steam locomotive (typo'd ls) -->
+  <div id="sl"><pre>      ====        ______
+   ___|[]|_______|ISTE  |____
+  |________________________|  |
+  =(O)=(O)~~~~~~~~(O)=(O)~~(O)=
+        ~ chug ~ chug ~ chug ~</pre></div>
+
+  <!-- DOOM emoji chaos -->
+  <div id="doom"></div>
+
+  <!-- fake Windows blue screen (win) -->
+  <div id="bsod">
+    <div class="bsod-box">
+      <div class="bsod-title">&nbsp;Windows&nbsp;</div>
+      <p>A fatal exception 0E has occurred at 0028:C001ISTE.</p>
+      <p>The current application will be terminated.</p>
+      <p>*&nbsp; This program has performed an illegal act of nostalgia.<br>
+         *&nbsp; Press any key to return to the comfort of DOS.</p>
+      <p>Press any key to continue _</p>
+    </div>
+  </div>
+
   <div id="overlay"></div>
   <input id="hiddenInput" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
 
@@ -323,6 +371,9 @@
   var easterEggsUnlocked = false;   // unlocked only after Exit to DOS
   var alcsActive = false;
   var alcsIndex = 0;
+  var pendingConfirm = null;   // for format c: Y/N
+  var bsodActive = false;      // for win blue screen
+  var tttBoard = null;         // tic-tac-toe board
 
   /* ---------- Swan station easter egg ---------- */
   var swanEl     = document.getElementById('swan');
@@ -462,6 +513,7 @@
     out("AIR-TO-GROUND ACTIONS");
     out("THEATERWIDE TACTICAL WARFARE");
     out("THEATERWIDE BIOTOXIC AND CHEMICAL WARFARE");
+    out("TIC-TAC-TOE");
     out("");
     out("GLOBAL THERMONUCLEAR WAR");
     out("");
@@ -531,6 +583,8 @@
         if(a === 'global thermonuclear war' || a === 'gtw' || a === 'global thermonuclear'){
           out(""); out("WOULDN'T YOU PREFER A GOOD GAME OF CHESS?");
           woprState = 'gtw_chess';
+        } else if(a === 'tic-tac-toe' || a === 'tic tac toe' || a === 'tictactoe' || a === 'ttt'){
+          startTTT();
         } else if(a === 'list' || a === 'games' || a === 'list games'){
           woprMenu();
         } else if(WOPR_GAMES.indexOf(a) !== -1){
@@ -562,10 +616,83 @@
         woprRunGTW();
         break;
 
+      case 'ttt':
+        tttMove(a);
+        break;
+
       case 'gtw_running':
         break; // ignore input during simulation
     }
     scrollBottom();
+  }
+
+  /* ---------- WOPR tic-tac-toe ---------- */
+  var TTT_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  function startTTT(){
+    tttBoard = [' ',' ',' ',' ',' ',' ',' ',' ',' '];
+    woprState = 'ttt';
+    out(""); out("A GAME OF TIC-TAC-TOE.  YOU ARE X, I AM O.");
+    out(""); renderTTT();
+    out(""); out("YOUR MOVE (1-9):");
+  }
+  function renderTTT(){
+    function c(i){ return tttBoard[i] === ' ' ? String(i+1) : tttBoard[i]; }
+    out("     " + c(0) + " | " + c(1) + " | " + c(2));
+    out("    -----------");
+    out("     " + c(3) + " | " + c(4) + " | " + c(5));
+    out("    -----------");
+    out("     " + c(6) + " | " + c(7) + " | " + c(8));
+  }
+  function tttWinner(b){
+    for(var i=0;i<TTT_LINES.length;i++){
+      var x = TTT_LINES[i];
+      if(b[x[0]] !== ' ' && b[x[0]] === b[x[1]] && b[x[1]] === b[x[2]]) return b[x[0]];
+    }
+    return null;
+  }
+  function tttFull(b){ return b.indexOf(' ') === -1; }
+  function tttFindTwo(b, p){
+    for(var i=0;i<TTT_LINES.length;i++){
+      var x = TTT_LINES[i], cnt = 0, empty = -1;
+      for(var j=0;j<3;j++){ if(b[x[j]]===p) cnt++; else if(b[x[j]]===' ') empty = x[j]; }
+      if(cnt === 2 && empty >= 0) return empty;
+    }
+    return -1;
+  }
+  function tttAI(){
+    var m = tttFindTwo(tttBoard,'O'); if(m>=0) return m;   // win
+    m = tttFindTwo(tttBoard,'X'); if(m>=0) return m;        // block
+    if(tttBoard[4]===' ') return 4;                          // center
+    var corners=[0,2,6,8]; for(var i=0;i<4;i++) if(tttBoard[corners[i]]===' ') return corners[i];
+    var sides=[1,3,5,7]; for(var i=0;i<4;i++) if(tttBoard[sides[i]]===' ') return sides[i];
+    return -1;
+  }
+  function tttMove(a){
+    var n = parseInt(a, 10);
+    if(isNaN(n) || n < 1 || n > 9 || tttBoard[n-1] !== ' '){
+      out(""); out("INVALID MOVE. CHOOSE AN EMPTY SQUARE (1-9):"); return;
+    }
+    tttBoard[n-1] = 'X';
+    var w = tttWinner(tttBoard);
+    if(!w && !tttFull(tttBoard)){ var mv = tttAI(); if(mv>=0) tttBoard[mv] = 'O'; w = tttWinner(tttBoard); }
+    out(""); renderTTT();
+    if(w === 'X'){ out(""); out("YOU WIN.  THAT SHOULD NOT BE POSSIBLE."); tttEnd(); }
+    else if(w === 'O'){ out(""); out("I WIN."); tttEnd(); }
+    else if(tttFull(tttBoard)){ out(""); out("A DRAW.  INTERESTING."); tttEnd(); }
+    else { out(""); out("YOUR MOVE (1-9):"); }
+  }
+  function tttEnd(){
+    woprState = 'gtw_running';
+    setTimeout(function(){
+      out("");
+      out("A STRANGE GAME.");
+      out("THE ONLY WINNING MOVE IS NOT TO PLAY.");
+      out("");
+      out("HOW ABOUT A NICE GAME OF CHESS?");
+      out("");
+      scrollBottom();
+      setTimeout(exitWopr, 2200);
+    }, 900);
   }
 
   /* ---------- session data ---------- */
@@ -742,12 +869,142 @@
     }, 85);
   }
 
+  /* ===================== misc fun commands ===================== */
+  function printReadme(){
+    blank();
+    out("ISTE LIVE 2026 - Donnie Piercey");
+    out("--------------------------------");
+    out("Type INSTALL PIERCEY.EXE to browse the full schedule,");
+    out("or run a session directly: CLARITY, RADIO, AQUA,");
+    out("SCHOOLAI, MATCH. Type LS to list files.");
+    blank();
+  }
+  function playSL(){
+    var el = document.getElementById('sl');
+    var pre = el.querySelector('pre');
+    el.style.display = 'block';
+    pre.style.animation = 'none'; void pre.offsetWidth; pre.style.animation = '';
+    setTimeout(function(){ el.style.display = 'none'; }, 3400);
+  }
+  function showBsod(){ bsodActive = true; document.getElementById('bsod').style.display = 'block'; }
+  function hideBsod(){
+    bsodActive = false;
+    document.getElementById('bsod').style.display = 'none';
+    out(""); out("Nope. We're staying in DOS."); blank(); scrollBottom();
+  }
+
+  /* ---------- classic game install gags (none of them install) ---------- */
+  var GAMES = {
+    doom:   { title:"DOOM" },
+    cnc:    { title:"Command & Conquer", stop:48, fail:[
+      "Construction yard required.",
+      "Insufficient Tiberium to continue.",
+      "(Build a refinery and try again.)" ] },
+    monkey: { title:"The Secret of Monkey Island", stop:64, fail:[
+      "The install disk is hidden under a rubber chicken",
+      "with a pulley in the middle.",
+      "Come back when you're a mighty pirate." ] },
+    civ:    { title:"Sid Meier's Civilization", stop:99, fail:[
+      "Just one more turn ... installing ...",
+      "Just one more turn ... installing ...",
+      "It is now the year 2087. You forgot to sleep." ] },
+    dott:   { title:"Day of the Tentacle", stop:52, fail:[
+      "The installer was sent to the wrong century.",
+      "Please check back in 200 years." ] },
+    kq6:    { title:"King's Quest VI", stop:40, fail:[
+      "You wandered off a cliff while reading the manual.",
+      "*** Restore   Restart   Quit ***" ] },
+    wc2:    { title:"Warcraft II", stop:55, fail:[
+      "Not enough lumber.",
+      "The peasants have unionized and gone on break.",
+      "Job's ... not done." ] }
+  };
+  var GAME_ALIASES = {
+    doom:   ["doom","doom.exe"],
+    cnc:    ["command & conquer","command and conquer","c&c","cnc","cnc.exe"],
+    monkey: ["the secret of monkey island","monkey island","monkey","monkey.exe"],
+    civ:    ["sid meier's civilization","civilization","civ","civ.exe"],
+    dott:   ["day of the tentacle","day of tentacle","dott","tentacle"],
+    kq6:    ["king's quest vi","kings quest vi","king's quest 6","kings quest 6","kq6","kings quest"],
+    wc2:    ["warcraft ii","warcraft 2","warcraft","wc2"]
+  };
+  function gameKey(cmd){
+    var c = cmd.indexOf("install ") === 0 ? cmd.slice(8).trim() : cmd;
+    for(var k in GAME_ALIASES){ if(GAME_ALIASES[k].indexOf(c) !== -1) return k; }
+    return null;
+  }
+  function runGameInstall(key){
+    if(key === 'doom'){ doomEmojis(); return; }
+    var g = GAMES[key];
+    blank();
+    out("Installing " + g.title + " ...");
+    out("");
+    var bar = addLine("");
+    var width = 28, pct = 0, stop = g.stop || 55;
+    var iv = setInterval(function(){
+      pct += 4; if(pct >= stop) pct = stop;
+      var f = Math.round(width * pct / 100);
+      bar.textContent = "  [" + repeatCh("#",f) + repeatCh(".",width-f) + "]  " + pct + "%";
+      scrollBottom();
+      if(pct >= stop){
+        clearInterval(iv);
+        setTimeout(function(){
+          out(""); out("INSTALL FAILED.");
+          g.fail.forEach(function(l){ out("  " + l); });
+          blank(); scrollBottom();
+        }, 550);
+      }
+    }, 90);
+  }
+  function doomEmojis(){
+    var emojis = ["👹","👾","🔥","💥","🚀","👻","🛸","🎮","⭐","🤘","😈","💣"];
+    var box = document.getElementById('doom');
+    box.innerHTML = ''; box.style.display = 'block';
+    for(var i=0;i<44;i++){
+      var s = document.createElement('span');
+      s.className = 'doom-e';
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      s.style.left = (Math.random()*96) + 'vw';
+      s.style.top  = (Math.random()*92) + 'vh';
+      s.style.fontSize = (20 + Math.random()*46) + 'px';
+      s.style.animationDuration = (1.8 + Math.random()*2.6) + 's';
+      s.style.animationDelay = (Math.random()*0.6) + 's';
+      box.appendChild(s);
+    }
+    blank();
+    out("Installing DOOM ...");
+    setTimeout(function(){
+      box.style.display = 'none'; box.innerHTML = '';
+      out(""); out("INSTALL FAILED.");
+      out("  Too much action for one little DOS screen.");
+      blank(); scrollBottom();
+    }, 5000);
+  }
+
   /* ===================== command processing (phase 1) ===================== */
   function runCommand(raw){
     if(woprState){ handleWopr(raw); return; }
+    if(pendingConfirm){
+      out("C:\\>" + raw);
+      var cb = pendingConfirm; pendingConfirm = null;
+      cb(raw.trim().toLowerCase());
+      scrollBottom(); return;
+    }
     var cmd = raw.trim().toLowerCase().replace(/\s+/g,' ');
     out("C:\\>" + raw);
     if(cmd === ""){ blank(); return; }
+
+    // sudo <anything>
+    if(cmd === "sudo" || cmd.indexOf("sudo ") === 0){
+      out("Nice try. You are not the administrator."); blank(); return;
+    }
+    // type <file>
+    if(cmd.indexOf("type ") === 0){
+      var fn = cmd.slice(5).trim();
+      if(fn === "readme.txt" || fn === "readme"){ printReadme(); }
+      else { out("File not found - " + fn.toUpperCase()); blank(); }
+      return;
+    }
 
     // ---- Easter eggs: only available AFTER the schedule has been viewed ----
     // Hidden 2004 ALCS installer - requires the exact full command
@@ -796,6 +1053,11 @@
       setTimeout(launchInstaller, 650);
       return;
     }
+
+    // classic game install gags (none of them actually install)
+    var gk = gameKey(cmd);
+    if(gk){ runGameInstall(gk); return; }
+
     switch(cmd){
       case "help": case "?":
         blank();
@@ -813,13 +1075,58 @@
       case "schoolai": case "schoolai.bat": openSchedule("schoolai"); break;
       case "match": case "match.bat": openSchedule("match"); break;
       case "schedule": case "schedule.bat": case "schedule.dat": openSchedule(); break;
-      case "readme": case "readme.txt":
+      case "readme": case "readme.txt": printReadme(); break;
+      case "sl": playSL(); break;
+      case "win": case "windows": case "win.com":
+        blank(); out("Starting Windows 3.1 ..."); setTimeout(showBsod, 900); break;
+      case "format c:": case "format": case "format c":
+        out("WARNING: ALL DATA on drive C: will be lost!");
+        out("Proceed with Format (Y/N)? ");
+        pendingConfirm = function(ans){
+          if(ans==='y' || ans==='yes'){ out(""); out("...just kidding. Nothing was formatted. :)"); }
+          else { out(""); out("Format cancelled. Phew."); }
+          blank();
+        };
+        break;
+      case "date":
+        var dd = new Date();
+        var DW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+        out("Current date is " + DW[dd.getDay()] + " " + pad2(dd.getMonth()+1) + "-" + pad2(dd.getDate()) + "-" + dd.getFullYear());
+        blank(); break;
+      case "time":
+        var tt = new Date();
+        var hr = tt.getHours(), ap = hr<12 ? "a" : "p", h12 = hr%12; if(h12===0) h12=12;
+        out("Current time is " + pad2(h12) + ":" + pad2(tt.getMinutes()) + ":" + pad2(tt.getSeconds()) + ap);
+        blank(); break;
+      case "tree":
+        out("C:.");
+        out("|");
+        out("+--- INSTALL.EXE");
+        out("+--- PIERCEY.DAT");
+        out("+--- SCHEDULE.DAT");
+        out("+--- SESSIONS");
+        out("|      +--- CLARITY.BAT");
+        out("|      +--- RADIO.BAT");
+        out("|      +--- AQUA.BAT");
+        out("|      +--- SCHOOLAI.BAT");
+        out("|      \\--- MATCH.BAT");
+        out("\\--- README.TXT");
+        blank(); break;
+      case "games": case "arcade":
         blank();
-        out("ISTE LIVE 2026 - Donnie Piercey");
-        out("--------------------------------");
-        out("Type INSTALL PIERCEY.EXE to browse the full schedule,");
-        out("or run a session directly: CLARITY, RADIO, AQUA,");
-        out("SCHOOLAI, MATCH. Type LS to list files.");
+        out("Classic games on this drive (type a name to install):");
+        out("  DOOM");
+        out("  COMMAND & CONQUER");
+        out("  THE SECRET OF MONKEY ISLAND");
+        out("  SID MEIER'S CIVILIZATION");
+        out("  DAY OF THE TENTACLE");
+        out("  KING'S QUEST VI");
+        out("  WARCRAFT II");
+        blank(); break;
+      case "xyzzy": out("Nothing happens."); blank(); break;
+      case "42":
+        out("The Answer to the Ultimate Question of Life,");
+        out("the Universe, and Everything.");
         blank(); break;
       case "piercey.dat": case "autoexec.bat": case "command.com": case "config.sys":
         out("Cannot run " + cmd + " directly. Try INSTALL PIERCEY.EXE.");
@@ -1165,10 +1472,12 @@
   /* ===================== input wiring ===================== */
   function focusInput(){ if(!installerActive && !swanScreenActive && !alcsActive) hidden.focus(); }
   document.addEventListener('click', function(){
+    if(bsodActive){ hideBsod(); return; }
     if(swanScreenActive){ hideSwanScreen(); return; }
     focusInput();
   });
   window.addEventListener('keydown', function(e){
+    if(bsodActive){ e.preventDefault(); hideBsod(); return; }
     if(swanScreenActive){ e.preventDefault(); hideSwanScreen(); return; }
     if(sbActive){ sbKey(e); return; }
     if(installerActive){ installerKey(e); return; }
