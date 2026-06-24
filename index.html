@@ -163,6 +163,28 @@
   .dg-over{position:absolute;top:38%;left:0;right:0;text-align:center;color:#ff3b3b;
     font-size:44px;line-height:1.4;text-shadow:0 0 10px rgba(255,0,0,0.6);}
 
+  /* shared simple game overlay (easter eggs) */
+  #game{position:fixed;inset:0;z-index:74;display:none;overflow:hidden;color:#fff;font-family:"VT323",monospace;}
+  #game.g-black{background:#000;}
+  #game.g-blue{background:#0000aa;}
+  #game.g-green{background:#0e2e12;}
+  #game.g-purple{background:#241046;}
+  .g-instr2{position:absolute;bottom:16px;left:0;right:0;text-align:center;color:var(--cyan);font-size:16px;}
+  .g-over{position:absolute;top:36%;left:0;right:0;text-align:center;font-size:42px;line-height:1.4;}
+  .cnc-base{position:absolute;font-size:42px;}
+  .cnc-enemy{position:absolute;font-size:32px;cursor:pointer;}
+  .wc2-node{position:absolute;font-size:36px;cursor:pointer;}
+  .adv-wrap{max-width:660px;margin:9vh auto 0;padding:0 20px;text-align:center;}
+  .adv-title{font-size:32px;color:#ffff55;margin-bottom:18px;}
+  .adv-q{font-size:24px;margin-bottom:18px;}
+  .adv-opt{display:block;border:2px solid #fff;background:#0000cc;padding:8px 14px;margin:10px auto;
+    max-width:540px;cursor:pointer;font-size:22px;}
+  .civ-stats{font-size:23px;margin-bottom:20px;line-height:1.5;}
+  .dott-pads{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:24px;}
+  .dott-pad{width:150px;height:96px;display:flex;align-items:center;justify-content:center;
+    font-size:22px;color:#000;cursor:pointer;border:3px solid #000;opacity:0.65;}
+  .dott-pad.flash{opacity:1;box-shadow:0 0 26px #fff;}
+
   /* King's Quest VI install + crown quest (easter egg) */
   #kq{position:fixed;inset:0;z-index:74;display:none;background:#0000aa;color:#fff;
     font-family:"VT323",monospace;overflow:hidden;}
@@ -347,6 +369,8 @@
   <div id="doomg"></div>
   <!-- King's Quest VI install + crown quest -->
   <div id="kq"></div>
+  <!-- shared simple game overlay (C&C, WC2, Monkey, Civ, DOTT) -->
+  <div id="game"></div>
 
   <!-- fake Windows blue screen (win) -->
   <div id="bsod">
@@ -395,6 +419,7 @@
   var kqActive = false, kqPhase = null, kqDisk = 1, kqChar = null, kqCrown = null;
   var kqX = 0, kqY = 0, kqCX = 0, kqCY = 0;
   var doomGameActive = false, doomState = null, doomLoop = null;
+  var gameActive = false, gameType = null, gs = null, gameLoop = null;
 
   /* ---------- Swan station easter egg ---------- */
   var swanEl     = document.getElementById('swan');
@@ -957,6 +982,11 @@
   function runGameInstall(key){
     if(key === 'doom'){ doomGame(); return; }
     if(key === 'kq6'){ kqInstall(); return; }
+    if(key === 'cnc'){ cncGame(); return; }
+    if(key === 'wc2'){ wc2Game(); return; }
+    if(key === 'monkey'){ monkeyGame(); return; }
+    if(key === 'civ'){ civGame(); return; }
+    if(key === 'dott'){ dottGame(); return; }
     var g = GAMES[key];
     blank();
     out("Installing " + g.title + " ...");
@@ -1132,6 +1162,211 @@
     kqActive = false; kqPhase = null;
     var box = document.getElementById('kq'); box.style.display = 'none'; box.className = ''; box.innerHTML = '';
     out(""); out("KING'S QUEST VI installed... eventually. Quest complete!"); blank(); scrollBottom(); focusInput();
+  }
+
+  /* ===================== shared simple game framework ===================== */
+  function gameBox(){ return document.getElementById('game'); }
+  function openGame(type, bg){
+    gameActive = true; gameType = type;
+    var box = gameBox(); box.className = bg || ''; box.style.display = 'block'; box.innerHTML = '';
+    window.scrollTo(0,0);
+    return box;
+  }
+  function endGame(msg, color){
+    if(gameLoop){ clearInterval(gameLoop); gameLoop = null; }
+    gameType = '_over';
+    var d = document.createElement('div'); d.className = 'g-over';
+    if(color) d.style.color = color;
+    d.innerHTML = msg + '<br><span style="font-size:18px">Press any key to return to DOS</span>';
+    gameBox().appendChild(d);
+  }
+  function exitGame(){
+    gameActive = false; gameType = null; gs = null;
+    if(gameLoop){ clearInterval(gameLoop); gameLoop = null; }
+    var box = gameBox(); box.style.display = 'none'; box.className = ''; box.innerHTML = '';
+    blank(); scrollBottom(); focusInput();
+  }
+  function gameKey(e){
+    if(gameType === '_over'){ e.preventDefault(); exitGame(); return; }
+    if(e.key === 'Escape'){ e.preventDefault(); exitGame(); return; }
+    if(gameType === 'monkey' && e.key >= '1' && e.key <= '3'){ e.preventDefault(); monkeyChoose(); }
+  }
+
+  /* ---------- Command & Conquer: base defense (click enemies) ---------- */
+  function cncGame(){
+    var box = openGame('cnc','g-black');
+    gs = { score:0, lives:3, enemies:[], spawnT:0, goal:15 };
+    var H = window.innerHeight;
+    var hud = document.createElement('div'); hud.className = 'g-hud'; hud.id = 'cnchud'; box.appendChild(hud);
+    var base = document.createElement('div'); base.className = 'cnc-base'; base.textContent = '🏠';
+    base.style.left = '10px'; base.style.top = (H/2) + 'px'; box.appendChild(base);
+    var ins = document.createElement('div'); ins.className = 'g-instr2'; ins.textContent = 'Defend the base! CLICK enemies before they reach the left.  (ESC quit)';
+    box.appendChild(ins);
+    cncHud(); gameLoop = setInterval(cncTick, 40);
+  }
+  function cncHud(){ var h = document.getElementById('cnchud'); if(h) h.textContent = 'C&C BASE DEFENSE    Score ' + gs.score + '/' + gs.goal + '    Lives ' + gs.lives; }
+  function cncSpawn(){
+    var W = window.innerWidth, H = window.innerHeight;
+    var emo = ['👾','🚙','🛸','🤖'][Math.floor(Math.random()*4)];
+    var el = document.createElement('div'); el.className = 'cnc-enemy'; el.textContent = emo;
+    var obj = { el:el, x:W-50, y:80+Math.random()*(H-180), vx:1.6+Math.random()*1.8, dead:false };
+    el.style.left = obj.x + 'px'; el.style.top = obj.y + 'px';
+    el.addEventListener('click', function(){
+      if(obj.dead) return; obj.dead = true; el.remove();
+      var i = gs.enemies.indexOf(obj); if(i>=0) gs.enemies.splice(i,1);
+      gs.score++; cncHud();
+      if(gs.score >= gs.goal) endGame('🏆 BASE SECURED!','#39ff14');
+    });
+    gameBox().appendChild(el); gs.enemies.push(obj);
+  }
+  function cncTick(){
+    if(gameType !== 'cnc') return;
+    gs.spawnT++; if(gs.spawnT >= 22){ gs.spawnT = 0; cncSpawn(); }
+    for(var i=gs.enemies.length-1;i>=0;i--){
+      var o = gs.enemies[i]; o.x -= o.vx; o.el.style.left = o.x + 'px';
+      if(o.x < 56){
+        o.el.remove(); gs.enemies.splice(i,1); gs.lives--; cncHud();
+        if(gs.lives <= 0){ endGame('💥 BASE OVERRUN','#ff3b3b'); return; }
+      }
+    }
+  }
+
+  /* ---------- Warcraft II: gather resources (clicker) ---------- */
+  function wc2Game(){
+    var box = openGame('wc2','g-green');
+    gs = { gold:0, lumber:0, goal:300 };
+    var hud = document.createElement('div'); hud.className = 'g-hud'; hud.id = 'wc2hud'; box.appendChild(hud);
+    var ins = document.createElement('div'); ins.className = 'g-instr2'; ins.textContent = 'Build the Town Hall! CLICK gold mines and trees.  (ESC quit)';
+    box.appendChild(ins);
+    for(var i=0;i<9;i++) wc2Spawn();
+    wc2Hud();
+  }
+  function wc2Hud(){ var h = document.getElementById('wc2hud'); if(h) h.textContent = 'WARCRAFT II    Gold ' + gs.gold + '/' + gs.goal + '    Lumber ' + gs.lumber + '/' + gs.goal; }
+  function wc2Move(el){
+    var W = window.innerWidth, H = window.innerHeight;
+    el.style.left = (40 + Math.random()*(W-110)) + 'px';
+    el.style.top  = (90 + Math.random()*(H-200)) + 'px';
+  }
+  function wc2Spawn(){
+    var isGold = Math.random() < 0.5;
+    var el = document.createElement('div'); el.className = 'wc2-node'; el.textContent = isGold ? '⛏️' : '🌲';
+    wc2Move(el);
+    el.addEventListener('click', function(){
+      if(isGold) gs.gold = Math.min(gs.goal, gs.gold + 25); else gs.lumber = Math.min(gs.goal, gs.lumber + 25);
+      wc2Move(el); wc2Hud();
+      if(gs.gold >= gs.goal && gs.lumber >= gs.goal) endGame('🏰 TOWN HALL COMPLETE!','#ffff55');
+    });
+    gameBox().appendChild(el);
+  }
+
+  /* ---------- The Secret of Monkey Island: choose-your-path ---------- */
+  var monkeyStep = 0;
+  var MONKEY_SCREENS = [
+    { q:"You wash ashore on a mysterious island. Three paths lie ahead:",
+      o:["Trudge into the SWAMP","Climb the VOLCANO","Duck into the TAVERN"] },
+    { q:"A snarky parrot blocks the way and demands the secret word.",
+      o:["Say 'please'","Offer it a cracker","Challenge it to a staring contest"] },
+    { q:"You find a locked treasure chest. What is your move?",
+      o:["Pick the lock with a hairpin","Use the rubber chicken","Ask the chest nicely"] }
+  ];
+  function monkeyGame(){ openGame('monkey','g-blue'); monkeyStep = 0; renderMonkey(); }
+  function renderMonkey(){
+    var box = gameBox(); box.innerHTML = '';
+    var s = MONKEY_SCREENS[monkeyStep];
+    var w = document.createElement('div'); w.className = 'adv-wrap';
+    var t = document.createElement('div'); t.className = 'adv-title'; t.textContent = 'The Secret of Monkey Island';
+    var q = document.createElement('div'); q.className = 'adv-q'; q.textContent = s.q;
+    w.appendChild(t); w.appendChild(q);
+    s.o.forEach(function(opt,i){
+      var b = document.createElement('div'); b.className = 'adv-opt'; b.textContent = (i+1) + '. ' + opt;
+      b.addEventListener('click', monkeyChoose);
+      w.appendChild(b);
+    });
+    var h = document.createElement('div'); h.className = 'g-instr'; h.textContent = 'Click an option (or press 1-3).  ESC to quit.';
+    w.appendChild(h); box.appendChild(w);
+  }
+  function monkeyChoose(){
+    monkeyStep++;
+    if(monkeyStep >= MONKEY_SCREENS.length){
+      endGame('💰 THE CHEST CREAKS OPEN... TREASURE!<br>You are now a Mighty Pirate.','#ffff55');
+    } else renderMonkey();
+  }
+
+  /* ---------- Sid Meier's Civilization: turn-based builder ---------- */
+  function civGame(){ openGame('civ','g-blue'); gs = { turn:1, pop:1, food:0, gold:0, sci:0, goal:20 }; renderCiv(); }
+  function renderCiv(){
+    var box = gameBox(); box.innerHTML = '';
+    var w = document.createElement('div'); w.className = 'adv-wrap';
+    w.innerHTML = '<div class="adv-title">Sid Meier&#39;s Civilization</div>' +
+      '<div class="civ-stats">Turn ' + gs.turn + '   |   Population ' + gs.pop + '/' + gs.goal + '<br>' +
+      'Food ' + gs.food + '   Gold ' + gs.gold + '   Science ' + gs.sci + '</div>';
+    var acts = [['🌾 Farm  (+3 Food)','farm'],['💰 Trade (+3 Gold)','trade'],['🔬 Research (+3 Science)','sci'],['🏛️ Grow City (needs 5 Food)','grow']];
+    acts.forEach(function(a){
+      var b = document.createElement('div'); b.className = 'adv-opt'; b.textContent = a[0];
+      b.addEventListener('click', function(){ civAct(a[1]); });
+      w.appendChild(b);
+    });
+    var h = document.createElement('div'); h.className = 'g-instr'; h.textContent = 'Just one more turn...  ESC to quit.';
+    w.appendChild(h); box.appendChild(w);
+  }
+  function civAct(a){
+    if(a === 'farm') gs.food += 3;
+    else if(a === 'trade') gs.gold += 3;
+    else if(a === 'sci') gs.sci += 3;
+    else if(a === 'grow'){ if(gs.food >= 5){ gs.food -= 5; gs.pop += 1; } }
+    gs.turn++;
+    if(gs.pop >= gs.goal){ endGame('🏆 VICTORY! Your civilization stands the test of time.','#ffff55'); return; }
+    renderCiv();
+  }
+
+  /* ---------- Day of the Tentacle: time-machine memory game ---------- */
+  function dottGame(){
+    var box = openGame('dott','g-purple');
+    gs = { seq:[], input:[], round:0, showing:false, goal:5 };
+    var w = document.createElement('div'); w.className = 'adv-wrap';
+    w.innerHTML = '<div class="adv-title">Day of the Tentacle</div>' +
+      '<div class="adv-q" id="dottmsg">Watch the time-machine sequence, then repeat it!</div>';
+    var pads = document.createElement('div'); pads.className = 'dott-pads';
+    var labels = ['PAST','PRESENT','FUTURE','TIME'];
+    var colors = ['#e23b3b','#3bbf3b','#3b7be2','#e2c03b'];
+    for(var i=0;i<4;i++){
+      (function(idx){
+        var p = document.createElement('div'); p.className = 'dott-pad'; p.id = 'dpad' + idx;
+        p.style.background = colors[idx]; p.textContent = labels[idx];
+        p.addEventListener('click', function(){ dottClick(idx); });
+        pads.appendChild(p);
+      })(i);
+    }
+    w.appendChild(pads);
+    var h = document.createElement('div'); h.className = 'g-instr'; h.textContent = '(ESC to quit)';
+    w.appendChild(h); box.appendChild(w);
+    setTimeout(dottNext, 800);
+  }
+  function dottNext(){
+    gs.round++; gs.input = [];
+    gs.seq.push(Math.floor(Math.random()*4));
+    var m = document.getElementById('dottmsg'); if(m) m.textContent = 'Round ' + gs.round + ' of ' + gs.goal + ' - watch!';
+    dottPlay(0);
+  }
+  function dottPlay(i){
+    gs.showing = true;
+    if(i >= gs.seq.length){ gs.showing = false; var m = document.getElementById('dottmsg'); if(m) m.textContent = 'Your turn! Repeat the sequence.'; return; }
+    var pad = document.getElementById('dpad' + gs.seq[i]); if(!pad) return;
+    pad.classList.add('flash');
+    setTimeout(function(){ pad.classList.remove('flash'); setTimeout(function(){ dottPlay(i+1); }, 200); }, 460);
+  }
+  function dottClick(idx){
+    if(gameType !== 'dott' || gs.showing) return;
+    var pad = document.getElementById('dpad' + idx); pad.classList.add('flash');
+    setTimeout(function(){ pad.classList.remove('flash'); }, 200);
+    gs.input.push(idx);
+    var k = gs.input.length - 1;
+    if(gs.input[k] !== gs.seq[k]){ endGame('⏳ TIMELINE SCRAMBLED! Better luck next century.','#ff3b3b'); return; }
+    if(gs.input.length === gs.seq.length){
+      if(gs.round >= gs.goal){ endGame('🎉 TIME RESTORED! The day is saved.','#ffff55'); return; }
+      var m = document.getElementById('dottmsg'); if(m) m.textContent = 'Correct!';
+      setTimeout(dottNext, 800);
+    }
   }
 
   /* ===================== command processing (phase 1) ===================== */
@@ -1625,7 +1860,7 @@
   }
 
   /* ===================== input wiring ===================== */
-  function focusInput(){ if(!installerActive && !swanScreenActive && !alcsActive && !kqActive && !doomGameActive) hidden.focus(); }
+  function focusInput(){ if(!installerActive && !swanScreenActive && !alcsActive && !kqActive && !doomGameActive && !gameActive) hidden.focus(); }
   document.addEventListener('click', function(){
     if(bsodActive){ hideBsod(); return; }
     if(swanScreenActive){ hideSwanScreen(); return; }
@@ -1634,6 +1869,7 @@
   window.addEventListener('keydown', function(e){
     if(kqActive){ kqKey(e); return; }
     if(doomGameActive){ doomKey(e); return; }
+    if(gameActive){ gameKey(e); return; }
     if(bsodActive){ e.preventDefault(); hideBsod(); return; }
     if(swanScreenActive){ e.preventDefault(); hideSwanScreen(); return; }
     if(sbActive){ sbKey(e); return; }
@@ -1643,7 +1879,7 @@
   });
   hidden.addEventListener('input', function(){ typedEl.textContent=hidden.value; scrollBottom(); });
   hidden.addEventListener('keydown', function(e){
-    if(locked||installerActive||swanScreenActive||alcsActive||kqActive||doomGameActive){ return; }
+    if(locked||installerActive||swanScreenActive||alcsActive||kqActive||doomGameActive||gameActive){ return; }
     if(e.key==='Enter'){
       e.preventDefault();
       var val=hidden.value;
