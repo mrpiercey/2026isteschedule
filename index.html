@@ -678,7 +678,7 @@
       }
     }
 
-    if(cmd === "install" || cmd === "install piercey" || cmd === "installpiercey"){
+    if(cmd === "install" || cmd === "install piercey" || cmd === "installpiercey" || cmd === "install.exe"){
       blank();
       out("Installing ISTE 2026 schedule");
       out("Copying files .............. OK");
@@ -696,6 +696,23 @@
         out("    VER               Show version");
         blank(); break;
       case "cls": case "clear": screenEl.innerHTML=""; break;
+      case "clarity": case "clarity.bat": openSchedule("clarity"); break;
+      case "radio": case "radio.bat": openSchedule("radio"); break;
+      case "aqua": case "aqua.bat": openSchedule("aqua"); break;
+      case "schoolai": case "schoolai.bat": openSchedule("schoolai"); break;
+      case "match": case "match.bat": openSchedule("match"); break;
+      case "schedule": case "schedule.bat": case "schedule.dat": openSchedule(); break;
+      case "readme": case "readme.txt":
+        blank();
+        out("ISTE LIVE 2026 - Donnie Piercey");
+        out("--------------------------------");
+        out("Type INSTALL PIERCEY to browse the full schedule,");
+        out("or run a session directly: CLARITY, RADIO, AQUA,");
+        out("SCHOOLAI, MATCH. Type LS to list files.");
+        blank(); break;
+      case "piercey.dat": case "autoexec.bat": case "command.com": case "config.sys":
+        out("Cannot run " + cmd + " directly. Try INSTALL PIERCEY.");
+        blank(); break;
       case "ls": case "dir":
         blank();
         out("autoexec.bat   command.com    config.sys");
@@ -722,12 +739,21 @@
   }
 
   /* ===================== PHASE 2 : installer TUI ===================== */
-  function launchInstaller(){
+  function launchInstaller(preKey){
     installerActive = true; locked = true; hidden.blur();
     document.body.classList.add('installer');
     menuIndex = 0;
-    renderMenu(); renderDetailPlaceholder();
+    if(preKey){
+      for(var i=0;i<MENU.length;i++){ if(MENU[i].key===preKey){ menuIndex=i; break; } }
+    }
+    renderMenu();
+    if(preKey){ renderDetail(preKey); } else { renderDetailPlaceholder(); }
     window.scrollTo(0,0);
+  }
+  function openSchedule(preKey){
+    blank();
+    out("Loading schedule" + (preKey ? " - " + preKey.toUpperCase() : "") + " ...");
+    setTimeout(function(){ launchInstaller(preKey); }, 350);
   }
   function exitInstaller(){
     installerActive = false;
