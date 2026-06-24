@@ -663,7 +663,7 @@
 
   /* ===================== boot sequence ===================== */
   var bootLines = [
-    "ISTE BIOS v6.23  (c) 2026 Piercey Microsystems","",
+    "ISTE BIOS v6.23  (c) 2026 Lubinsky Microsystems","",
     "Detecting hardware ........... OK",
     "Memory Test : 655360 KB OK",
     "Detecting Primary Master  ... ISTE-SCHEDULE-DRIVE",
@@ -806,6 +806,7 @@
         out("    VER               Show version");
         blank(); break;
       case "cls": case "clear": screenEl.innerHTML=""; break;
+      case "exit": case "quit": blank(); break;
       case "clarity": case "clarity.bat": openSchedule("clarity"); break;
       case "radio": case "radio.bat": openSchedule("radio"); break;
       case "aqua": case "aqua.bat": openSchedule("aqua"); break;
@@ -879,7 +880,10 @@
     out("Thanks for stopping by. See you at ISTE!");
     out("Type INSTALL PIERCEY.EXE to launch the schedule again.");
     out("Enter LS or DIR to view other files.");
-    blank(); scrollBottom(); focusInput();
+    blank();
+    inputLine.style.display = 'flex';
+    typedEl.textContent = '';
+    scrollBottom(); focusInput();
   }
 
   function makeDiv(text, cls){
@@ -1141,7 +1145,10 @@
     locked = false;
     blank(); out("C:\\>exit");
     out("2004. Greatest comeback in baseball history. Never forget.");
-    blank(); scrollBottom(); focusInput();
+    blank();
+    inputLine.style.display = 'flex';
+    typedEl.textContent = '';
+    scrollBottom(); focusInput();
   }
   function alcsKey(e){
     var n = ALCS.length + 1;
