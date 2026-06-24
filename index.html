@@ -1058,7 +1058,7 @@
     var box = document.getElementById('doomg');
     box.innerHTML = ''; box.style.display = 'block';
     doomGameActive = true; doomState = 'play';
-    var W = window.innerWidth, H = window.innerHeight;
+    var W = box.clientWidth, H = box.clientHeight;
     var player = document.createElement('div'); player.className = 'dg-player'; player.textContent = '😎';
     doomPX = W/2; doomPY = H - 100;
     player.style.left = doomPX + 'px'; player.style.top = doomPY + 'px';
@@ -1078,7 +1078,7 @@
     doomGame._player = player;
     doomLoop = setInterval(function(){
       if(doomState !== 'play') return;
-      var W = window.innerWidth, H = window.innerHeight;
+      var W = box.clientWidth, H = box.clientHeight;
       enemies.forEach(function(en){
         en.x += en.vx;
         if(en.x < 20 || en.x > W-50){ en.vx *= -1; en.x += en.vx; }
@@ -1104,7 +1104,7 @@
     }, 40);
   }
   function doomMove(dx, dy){
-    var W = window.innerWidth, H = window.innerHeight;
+    var b = document.getElementById('doomg'); var W = b.clientWidth, H = b.clientHeight;
     doomPX = Math.max(8, Math.min(W-40, doomPX + dx));
     doomPY = Math.max(8, Math.min(H-50, doomPY + dy));
     if(doomGame._player){ doomGame._player.style.left = doomPX + 'px'; doomGame._player.style.top = doomPY + 'px'; }
@@ -1161,7 +1161,7 @@
   function kqStartQuest(){
     kqPhase = 'quest';
     var box = document.getElementById('kq'); box.innerHTML = ''; box.className = 'kq-quest';
-    var W = window.innerWidth, H = window.innerHeight;
+    var W = box.clientWidth, H = box.clientHeight;
     var msg = document.createElement('div'); msg.className = 'kq-questmsg';
     msg.textContent = 'Find your crown!  Use the ARROW KEYS.';
     box.appendChild(msg);
@@ -1174,7 +1174,7 @@
     box.appendChild(kqCrown);
   }
   function kqMove(dx, dy){
-    var W = window.innerWidth, H = window.innerHeight;
+    var b = document.getElementById('kq'); var W = b.clientWidth, H = b.clientHeight;
     kqX = Math.max(8, Math.min(W-40, kqX + dx));
     kqY = Math.max(8, Math.min(H-50, kqY + dy));
     kqChar.style.left = kqX + 'px'; kqChar.style.top = kqY + 'px';
@@ -1240,7 +1240,7 @@
   function cncGame(){
     var box = openGame('cnc','g-black');
     gs = { score:0, lives:3, enemies:[], spawnT:0, goal:15 };
-    var H = window.innerHeight;
+    var H = box.clientHeight;
     var hud = document.createElement('div'); hud.className = 'g-hud'; hud.id = 'cnchud'; box.appendChild(hud);
     var base = document.createElement('div'); base.className = 'cnc-base'; base.textContent = '🏠';
     base.style.left = '10px'; base.style.top = (H/2) + 'px'; box.appendChild(base);
@@ -1250,7 +1250,7 @@
   }
   function cncHud(){ var h = document.getElementById('cnchud'); if(h) h.textContent = 'C&C BASE DEFENSE    Score ' + gs.score + '/' + gs.goal + '    Lives ' + gs.lives; }
   function cncSpawn(){
-    var W = window.innerWidth, H = window.innerHeight;
+    var b = gameBox(); var W = b.clientWidth, H = b.clientHeight;
     var emo = ['👾','🚙','🛸','🤖'][Math.floor(Math.random()*4)];
     var el = document.createElement('div'); el.className = 'cnc-enemy'; el.textContent = emo;
     var obj = { el:el, x:W-50, y:80+Math.random()*(H-180), vx:1.6+Math.random()*1.8, dead:false };
@@ -1287,7 +1287,7 @@
   }
   function wc2Hud(){ var h = document.getElementById('wc2hud'); if(h) h.textContent = 'WARCRAFT II    Gold ' + gs.gold + '/' + gs.goal + '    Lumber ' + gs.lumber + '/' + gs.goal; }
   function wc2Move(el){
-    var W = window.innerWidth, H = window.innerHeight;
+    var b = gameBox(); var W = b.clientWidth, H = b.clientHeight;
     el.style.left = (40 + Math.random()*(W-110)) + 'px';
     el.style.top  = (90 + Math.random()*(H-200)) + 'px';
   }
