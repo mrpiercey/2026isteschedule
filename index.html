@@ -153,16 +153,32 @@
     animation:sltrain 3.3s linear;}
   @keyframes sltrain{from{transform:translateX(100vw);}to{transform:translateX(-130%);}}
 
-  /* DOOM emoji chaos (easter egg) */
-  #doom{position:fixed;inset:0;z-index:57;display:none;overflow:hidden;pointer-events:none;}
-  .doom-e{position:absolute;animation:doomfloat 3s linear infinite;}
-  @keyframes doomfloat{
-    0%{transform:translate(0,0) rotate(0deg);}
-    25%{transform:translate(60px,-50px) rotate(90deg);}
-    50%{transform:translate(-50px,60px) rotate(180deg);}
-    75%{transform:translate(45px,45px) rotate(270deg);}
-    100%{transform:translate(0,0) rotate(360deg);}
-  }
+  /* DOOM dodge mini-game (easter egg) */
+  #doomg{position:fixed;inset:0;z-index:74;display:none;overflow:hidden;background:#000;
+    font-family:"VT323",monospace;}
+  .dg-player{position:absolute;font-size:34px;}
+  .dg-enemy{position:absolute;font-size:32px;}
+  .dg-laser{position:absolute;color:#ff3b3b;font-size:28px;text-shadow:0 0 6px #ff0000;}
+  .dg-hud{position:absolute;top:10px;left:0;right:0;text-align:center;color:#39ff14;font-size:20px;}
+  .dg-over{position:absolute;top:38%;left:0;right:0;text-align:center;color:#ff3b3b;
+    font-size:44px;line-height:1.4;text-shadow:0 0 10px rgba(255,0,0,0.6);}
+
+  /* King's Quest VI install + crown quest (easter egg) */
+  #kq{position:fixed;inset:0;z-index:74;display:none;background:#0000aa;color:#fff;
+    font-family:"VT323",monospace;overflow:hidden;}
+  .kq-dialog{max-width:560px;margin:14vh auto 0;border:3px solid #fff;background:#0000aa;
+    box-shadow:7px 7px 0 rgba(0,0,0,0.55);}
+  .kq-title{background:#0000cc;border-bottom:2px solid #5555ff;padding:4px 10px;text-align:center;font-size:22px;}
+  .kq-body{padding:18px;font-size:22px;text-align:center;white-space:pre-wrap;}
+  .kq-btn{display:inline-block;border:2px outset #fff;background:#c0c0c0;color:#000;
+    padding:4px 18px;cursor:pointer;font-family:"VT323",monospace;font-size:22px;}
+  .kq-hint{margin-top:12px;color:var(--cyan);font-size:16px;}
+  #kq.kq-quest{background:#0e2e12;}
+  .kq-questmsg{position:absolute;top:14px;left:0;right:0;text-align:center;color:#ffff55;font-size:24px;}
+  .kq-char{position:absolute;font-size:42px;}
+  .kq-crown{position:absolute;font-size:36px;}
+  .kq-complete{position:absolute;top:40%;left:0;right:0;text-align:center;color:#ffff55;
+    font-size:46px;line-height:1.4;text-shadow:0 0 10px rgba(255,255,85,0.7);}
 
   /* fake Windows blue screen (easter egg) */
   #bsod{position:fixed;inset:0;z-index:56;display:none;background:#0000aa;color:#fff;
@@ -327,8 +343,10 @@
   =(O)=(O)~~~~~~~~(O)=(O)~~(O)=
         ~ chug ~ chug ~ chug ~</pre></div>
 
-  <!-- DOOM emoji chaos -->
-  <div id="doom"></div>
+  <!-- DOOM dodge mini-game -->
+  <div id="doomg"></div>
+  <!-- King's Quest VI install + crown quest -->
+  <div id="kq"></div>
 
   <!-- fake Windows blue screen (win) -->
   <div id="bsod">
@@ -374,6 +392,9 @@
   var pendingConfirm = null;   // for format c: Y/N
   var bsodActive = false;      // for win blue screen
   var tttBoard = null;         // tic-tac-toe board
+  var kqActive = false, kqPhase = null, kqDisk = 1, kqChar = null, kqCrown = null;
+  var kqX = 0, kqY = 0, kqCX = 0, kqCY = 0;
+  var doomGameActive = false, doomState = null, doomLoop = null;
 
   /* ---------- Swan station easter egg ---------- */
   var swanEl     = document.getElementById('swan');
@@ -934,7 +955,8 @@
     return null;
   }
   function runGameInstall(key){
-    if(key === 'doom'){ doomEmojis(); return; }
+    if(key === 'doom'){ doomGame(); return; }
+    if(key === 'kq6'){ kqInstall(); return; }
     var g = GAMES[key];
     blank();
     out("Installing " + g.title + " ...");
@@ -956,29 +978,160 @@
       }
     }, 90);
   }
-  function doomEmojis(){
-    var emojis = ["👹","👾","🔥","💥","🚀","👻","🛸","🎮","⭐","🤘","😈","💣"];
-    var box = document.getElementById('doom');
+  /* ---------- DOOM dodge mini-game ---------- */
+  var doomPX = 0, doomPY = 0;
+  function doomGame(){
+    var box = document.getElementById('doomg');
     box.innerHTML = ''; box.style.display = 'block';
-    for(var i=0;i<44;i++){
-      var s = document.createElement('span');
-      s.className = 'doom-e';
-      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-      s.style.left = (Math.random()*96) + 'vw';
-      s.style.top  = (Math.random()*92) + 'vh';
-      s.style.fontSize = (20 + Math.random()*46) + 'px';
-      s.style.animationDuration = (1.8 + Math.random()*2.6) + 's';
-      s.style.animationDelay = (Math.random()*0.6) + 's';
-      box.appendChild(s);
+    doomGameActive = true; doomState = 'play';
+    var W = window.innerWidth, H = window.innerHeight;
+    var player = document.createElement('div'); player.className = 'dg-player'; player.textContent = '😎';
+    doomPX = W/2; doomPY = H - 100;
+    player.style.left = doomPX + 'px'; player.style.top = doomPY + 'px';
+    box.appendChild(player);
+    var hud = document.createElement('div'); hud.className = 'dg-hud'; box.appendChild(hud);
+    var EMO = ['👾','👹','👻','🤖'];
+    var enemies = [];
+    for(var i=0;i<4;i++){
+      var e = document.createElement('div'); e.className = 'dg-enemy'; e.textContent = EMO[i%EMO.length];
+      var ex = 80 + i*(W-160)/3, ey = 60 + (i%2)*46;
+      e.style.left = ex + 'px'; e.style.top = ey + 'px';
+      box.appendChild(e);
+      enemies.push({el:e, x:ex, y:ey, vx:(i%2?1:-1)*(2+Math.random()*2)});
     }
-    blank();
-    out("Installing DOOM ...");
-    setTimeout(function(){
-      box.style.display = 'none'; box.innerHTML = '';
-      out(""); out("INSTALL FAILED.");
-      out("  Too much action for one little DOS screen.");
-      blank(); scrollBottom();
-    }, 5000);
+    var lasers = [];
+    var startT = Date.now(), fireTimer = 0;
+    doomGame._player = player;
+    doomLoop = setInterval(function(){
+      if(doomState !== 'play') return;
+      var W = window.innerWidth, H = window.innerHeight;
+      enemies.forEach(function(en){
+        en.x += en.vx;
+        if(en.x < 20 || en.x > W-50){ en.vx *= -1; en.x += en.vx; }
+        en.el.style.left = en.x + 'px';
+      });
+      fireTimer++;
+      if(fireTimer >= 9){
+        fireTimer = 0;
+        var sh = enemies[Math.floor(Math.random()*enemies.length)];
+        var dx = doomPX - sh.x, dy = doomPY - sh.y, d = Math.sqrt(dx*dx+dy*dy) || 1, sp = 7;
+        var l = document.createElement('div'); l.className = 'dg-laser'; l.textContent = '•';
+        var lx = sh.x + 12, ly = sh.y + 24;
+        l.style.left = lx + 'px'; l.style.top = ly + 'px'; box.appendChild(l);
+        lasers.push({el:l, x:lx, y:ly, vx:dx/d*sp, vy:dy/d*sp});
+      }
+      for(var i=lasers.length-1;i>=0;i--){
+        var la = lasers[i]; la.x += la.vx; la.y += la.vy;
+        la.el.style.left = la.x + 'px'; la.el.style.top = la.y + 'px';
+        if(la.x < -20 || la.x > W+20 || la.y < -20 || la.y > H+20){ box.removeChild(la.el); lasers.splice(i,1); continue; }
+        if(Math.abs(la.x - doomPX) < 22 && Math.abs(la.y - doomPY) < 22){ doomOver(Math.floor((Date.now()-startT)/1000)); return; }
+      }
+      hud.textContent = 'DODGE THE LASERS!   Survived: ' + Math.floor((Date.now()-startT)/1000) + 's   (ESC to quit)';
+    }, 40);
+  }
+  function doomMove(dx, dy){
+    var W = window.innerWidth, H = window.innerHeight;
+    doomPX = Math.max(8, Math.min(W-40, doomPX + dx));
+    doomPY = Math.max(8, Math.min(H-50, doomPY + dy));
+    if(doomGame._player){ doomGame._player.style.left = doomPX + 'px'; doomGame._player.style.top = doomPY + 'px'; }
+  }
+  function doomOver(score){
+    doomState = 'over';
+    if(doomLoop){ clearInterval(doomLoop); doomLoop = null; }
+    var go = document.createElement('div'); go.className = 'dg-over';
+    go.innerHTML = '💥 GAME OVER 💥<br>Survived ' + score + ' seconds<br><span style="font-size:18px">Press any key to return to DOS</span>';
+    document.getElementById('doomg').appendChild(go);
+  }
+  function doomKey(e){
+    if(doomState === 'over'){ e.preventDefault(); doomQuit(); return; }
+    var k = e.key, step = 28;
+    if(k === 'Escape'){ e.preventDefault(); doomQuit(); }
+    else if(k === 'ArrowLeft'){ e.preventDefault(); doomMove(-step,0); }
+    else if(k === 'ArrowRight'){ e.preventDefault(); doomMove(step,0); }
+    else if(k === 'ArrowUp'){ e.preventDefault(); doomMove(0,-step); }
+    else if(k === 'ArrowDown'){ e.preventDefault(); doomMove(0,step); }
+  }
+  function doomQuit(){
+    doomGameActive = false; doomState = null;
+    if(doomLoop){ clearInterval(doomLoop); doomLoop = null; }
+    var box = document.getElementById('doomg'); box.style.display = 'none'; box.innerHTML = '';
+    out(""); out("INSTALL FAILED. DOOM is too intense for DOS."); blank(); scrollBottom(); focusInput();
+  }
+
+  /* ---------- King's Quest VI: 20 disks, then the crown quest ---------- */
+  function kqInstall(){
+    kqActive = true; kqPhase = 'disk'; kqDisk = 1;
+    var box = document.getElementById('kq'); box.className = ''; box.style.display = 'block';
+    renderKqDisk();
+  }
+  function renderKqDisk(){
+    var box = document.getElementById('kq');
+    var filled = Math.round(28 * (kqDisk-1) / 20);
+    box.innerHTML =
+      '<div class="kq-dialog">' +
+        '<div class="kq-title">King\'s Quest VI Installation</div>' +
+        '<div class="kq-body">' +
+          'Please insert Disk ' + kqDisk + ' of 20.<br><br>' +
+          '[' + repeatCh('#',filled) + repeatCh('.',28-filled) + ']  ' + (kqDisk-1) + '/20<br><br>' +
+          '<span class="kq-btn" id="kqbtn">Insert Disk ' + kqDisk + '</span>' +
+          '<div class="kq-hint">(click the button or press ENTER)</div>' +
+        '</div>' +
+      '</div>';
+    document.getElementById('kqbtn').addEventListener('click', kqNextDisk);
+  }
+  function kqNextDisk(){
+    if(kqPhase !== 'disk') return;
+    kqDisk++;
+    if(kqDisk > 20){ kqStartQuest(); } else { renderKqDisk(); }
+  }
+  function kqStartQuest(){
+    kqPhase = 'quest';
+    var box = document.getElementById('kq'); box.innerHTML = ''; box.className = 'kq-quest';
+    var W = window.innerWidth, H = window.innerHeight;
+    var msg = document.createElement('div'); msg.className = 'kq-questmsg';
+    msg.textContent = 'Find your crown!  Use the ARROW KEYS.';
+    box.appendChild(msg);
+    kqChar = document.createElement('div'); kqChar.className = 'kq-char'; kqChar.textContent = '🧍';
+    kqX = W/2; kqY = H/2; kqChar.style.left = kqX + 'px'; kqChar.style.top = kqY + 'px';
+    box.appendChild(kqChar);
+    kqCrown = document.createElement('div'); kqCrown.className = 'kq-crown'; kqCrown.textContent = '👑';
+    kqCX = 60 + Math.random()*(W-160); kqCY = 130 + Math.random()*(H-260);
+    kqCrown.style.left = kqCX + 'px'; kqCrown.style.top = kqCY + 'px';
+    box.appendChild(kqCrown);
+  }
+  function kqMove(dx, dy){
+    var W = window.innerWidth, H = window.innerHeight;
+    kqX = Math.max(8, Math.min(W-40, kqX + dx));
+    kqY = Math.max(8, Math.min(H-50, kqY + dy));
+    kqChar.style.left = kqX + 'px'; kqChar.style.top = kqY + 'px';
+    if(Math.abs(kqX - kqCX) < 44 && Math.abs(kqY - kqCY) < 44){ kqWin(); }
+  }
+  function kqWin(){
+    kqPhase = 'done';
+    kqChar.textContent = '🤴'; kqCrown.style.display = 'none';
+    var w = document.createElement('div'); w.className = 'kq-complete';
+    w.innerHTML = 'QUEST COMPLETE!<br><span style="font-size:18px">Press any key to return to DOS</span>';
+    document.getElementById('kq').appendChild(w);
+  }
+  function kqKey(e){
+    if(kqPhase === 'disk'){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); kqNextDisk(); }
+      return;
+    }
+    if(kqPhase === 'quest'){
+      var step = 28;
+      if(e.key === 'ArrowLeft'){ e.preventDefault(); kqMove(-step,0); }
+      else if(e.key === 'ArrowRight'){ e.preventDefault(); kqMove(step,0); }
+      else if(e.key === 'ArrowUp'){ e.preventDefault(); kqMove(0,-step); }
+      else if(e.key === 'ArrowDown'){ e.preventDefault(); kqMove(0,step); }
+      return;
+    }
+    if(kqPhase === 'done'){ e.preventDefault(); kqQuit(); }
+  }
+  function kqQuit(){
+    kqActive = false; kqPhase = null;
+    var box = document.getElementById('kq'); box.style.display = 'none'; box.className = ''; box.innerHTML = '';
+    out(""); out("KING'S QUEST VI installed... eventually. Quest complete!"); blank(); scrollBottom(); focusInput();
   }
 
   /* ===================== command processing (phase 1) ===================== */
@@ -1472,13 +1625,15 @@
   }
 
   /* ===================== input wiring ===================== */
-  function focusInput(){ if(!installerActive && !swanScreenActive && !alcsActive) hidden.focus(); }
+  function focusInput(){ if(!installerActive && !swanScreenActive && !alcsActive && !kqActive && !doomGameActive) hidden.focus(); }
   document.addEventListener('click', function(){
     if(bsodActive){ hideBsod(); return; }
     if(swanScreenActive){ hideSwanScreen(); return; }
     focusInput();
   });
   window.addEventListener('keydown', function(e){
+    if(kqActive){ kqKey(e); return; }
+    if(doomGameActive){ doomKey(e); return; }
     if(bsodActive){ e.preventDefault(); hideBsod(); return; }
     if(swanScreenActive){ e.preventDefault(); hideSwanScreen(); return; }
     if(sbActive){ sbKey(e); return; }
@@ -1488,7 +1643,7 @@
   });
   hidden.addEventListener('input', function(){ typedEl.textContent=hidden.value; scrollBottom(); });
   hidden.addEventListener('keydown', function(e){
-    if(locked||installerActive||swanScreenActive||alcsActive){ return; }
+    if(locked||installerActive||swanScreenActive||alcsActive||kqActive||doomGameActive){ return; }
     if(e.key==='Enter'){
       e.preventDefault();
       var val=hidden.value;
