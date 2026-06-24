@@ -283,7 +283,10 @@
 
   /* ============ MOBILE / small screens ============ */
   @media (max-width: 760px){
-    body{font-size:18px;}
+    body{font-size:18px;background:#000;}
+    /* mobile: no monitor, just the black DOS screen */
+    #monitorsvg,#powerbtn{display:none;}
+    #tube{left:0!important;top:0!important;width:100%!important;height:100%!important;}
     #crt{padding:12px 14px;}
     body.installer #tui, body.alcs #alcs{max-width:100%;padding:8px 10px 40px;}
     .titlebar{font-size:16px;letter-spacing:0;}
@@ -1988,6 +1991,11 @@
   var monitorWrap = document.getElementById('monitorwrap');
   function powerIsOff(){ return monitorWrap.classList.contains('off'); }
   function positionTube(){
+    var tube = document.getElementById('tube');
+    if(window.matchMedia('(max-width:760px)').matches){
+      tube.style.left='0'; tube.style.top='0'; tube.style.width='100%'; tube.style.height='100%';
+      return;  // mobile: no monitor, DOS screen fills viewport
+    }
     var svg = document.querySelector('#monitorsvg svg');
     if(!svg || !svg.viewBox || !svg.viewBox.baseVal) return;
     var vb = svg.viewBox.baseVal;
