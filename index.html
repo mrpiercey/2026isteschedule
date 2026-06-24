@@ -47,22 +47,26 @@
   #tui{display:none;}
   body.installer #tui{
     display:block;color:var(--white);
-    padding:10px 14px 30px;max-width:760px;margin:0 auto;
+    padding:10px 16px 30px;max-width:1080px;margin:0 auto;
   }
   .titlebar{text-align:center;color:var(--white);padding:2px 0 0;letter-spacing:1px;}
   .subbar{text-align:center;color:var(--blue);margin-bottom:12px;}
 
-  /* solid green facts box (no border, fixed height) */
+  /* solid green facts box (no border, fixed height), spans the top */
   .greenbox{
     background:var(--green);color:var(--white);
-    padding:8px 14px;margin:0 0 14px 0;
+    padding:10px 18px;margin:0 0 16px 0;
     box-shadow:5px 5px 0 rgba(0,0,0,0.35);
   }
-  #detailBody{height:9.6em;overflow:hidden;white-space:pre-wrap;}
+  #detailBody{height:13.5em;overflow:hidden;white-space:pre-wrap;}
   .d-title{color:var(--white);}
   .d-label{color:#003a00;}
   .d-value{color:var(--white);}
   .d-hint{color:#003a00;}
+  /* two-column layout inside the green box: facts | description */
+  .d-cols{display:flex;gap:40px;margin-top:2px;}
+  .d-facts{flex:0 0 47%;}
+  .d-desc-col{flex:1 1 0;min-width:0;}
 
   /* blue bordered boxes */
   .panel{
@@ -188,11 +192,6 @@
     <div class="panel menu">
       <div class="panel-title">&#9552;&#9552; MAIN MENU &#9552;&#9552;</div>
       <div class="panel-body" id="menuBody"></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-title">&#9552;&#9552; Description &#9552;&#9552;</div>
-      <div class="panel-body" id="descBody"></div>
     </div>
 
     <div class="footer">Press <span class="hot">&lt;Up/Down&gt;</span> to Move &nbsp; <span class="hot">&lt;Enter&gt;</span> to Load &nbsp; <span class="hot">&lt;Ctrl-X&gt;</span> to Exit</div>
@@ -726,7 +725,7 @@
     installerActive = true; locked = true; hidden.blur();
     document.body.classList.add('installer');
     menuIndex = 0;
-    renderMenu(); renderDesc(); renderDetailPlaceholder();
+    renderMenu(); renderDetailPlaceholder();
     window.scrollTo(0,0);
   }
   function exitInstaller(){
@@ -757,19 +756,27 @@
     detailBody.appendChild(makeDiv("Highlight a session in the MAIN MENU below", 'd-hint'));
     detailBody.appendChild(makeDiv("and press ENTER to load it here.", 'd-hint'));
     detailBody.appendChild(makeDiv(""));
-    detailBody.appendChild(makeDiv("Title, date, time, location, and speakers", 'd-hint'));
-    detailBody.appendChild(makeDiv("will appear in this green panel.", 'd-hint'));
+    detailBody.appendChild(makeDiv("Date, time, location, speakers, and the full", 'd-hint'));
+    detailBody.appendChild(makeDiv("session description will appear in this panel.", 'd-hint'));
   }
   function renderDetail(key){
     var s=SESSIONS[key]; lastSession=key;
     detailBody.innerHTML='';
+    // title spans the full width
     s.title.forEach(function(t){ detailBody.appendChild(makeDiv(t,'d-title')); });
     detailBody.appendChild(makeDiv(""));
-    detailBody.appendChild(detailRow("Date", s.date));
-    detailBody.appendChild(detailRow("Time", s.time));
-    detailBody.appendChild(detailRow("Location", s.location));
-    if(s.note)       detailBody.appendChild(detailRow("Note", s.note));
-    if(s.presenters) detailBody.appendChild(detailRow("Speakers", s.presenters));
+    // two columns: facts on the left, description on the right
+    var cols = document.createElement('div'); cols.className = 'd-cols';
+    var facts = document.createElement('div'); facts.className = 'd-facts';
+    var desc  = document.createElement('div'); desc.className = 'd-desc-col';
+    facts.appendChild(detailRow("Date", s.date));
+    facts.appendChild(detailRow("Time", s.time));
+    facts.appendChild(detailRow("Location", s.location));
+    if(s.note)       facts.appendChild(detailRow("Note", s.note));
+    if(s.presenters) facts.appendChild(detailRow("Speakers", s.presenters));
+    s.desc.forEach(function(l){ desc.appendChild(makeDiv(l, 'd-value')); });
+    cols.appendChild(facts); cols.appendChild(desc);
+    detailBody.appendChild(cols);
   }
   function renderMenu(){
     menuBody.innerHTML='';
@@ -777,22 +784,16 @@
       menuBody.appendChild(makeDiv(item.label, i===menuIndex ? 'sel' : ''));
     });
   }
-  function renderDesc(){
-    var item=MENU[menuIndex];
-    var lines = (item.key==="__exit") ? EXIT_DESC : SESSIONS[item.key].desc;
-    descBody.innerHTML='';
-    lines.forEach(function(l){ descBody.appendChild(makeDiv(l)); });
-  }
 
   function installerKey(e){
     if(e.key==='ArrowUp'){
       e.preventDefault();
       menuIndex=(menuIndex-1+MENU.length)%MENU.length;
-      renderMenu(); renderDesc();
+      renderMenu();
     } else if(e.key==='ArrowDown'){
       e.preventDefault();
       menuIndex=(menuIndex+1)%MENU.length;
-      renderMenu(); renderDesc();
+      renderMenu();
     } else if(e.key==='Enter'){
       e.preventDefault();
       var item=MENU[menuIndex];
