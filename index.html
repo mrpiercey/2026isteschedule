@@ -83,6 +83,14 @@
   .footer{text-align:center;color:var(--blue);margin-top:2px;}
   .footer .hot{color:#000;}
 
+  /* 2004 ALCS installer (easter egg) */
+  body.alcs{background:var(--gray);overflow:auto;cursor:default;}
+  body.alcs #crt{display:none;}
+  #alcs{display:none;}
+  body.alcs #alcs{display:block;color:#fff;padding:10px 14px 30px;max-width:840px;margin:0 auto;}
+  #alcsDetail{height:11.5em;overflow:hidden;white-space:pre;font-size:19px;line-height:1.3;}
+  #alcsDesc{height:3.6em;overflow:hidden;color:#fff;}
+
   /* Swan flip-clock countdown (easter egg) */
   #swan{position:fixed;top:14px;right:16px;z-index:60;display:none;}
   .flip-frame{
@@ -190,6 +198,22 @@
     <div class="footer">Press <span class="hot">&lt;Up/Down&gt;</span> to Move &nbsp; <span class="hot">&lt;Enter&gt;</span> to Load &nbsp; <span class="hot">&lt;Ctrl-X&gt;</span> to Exit</div>
   </div>
 
+  <!-- 2004 ALCS installer (easter egg: install lubinsky) -->
+  <div id="alcs">
+    <div class="titlebar">2004 ALCS - BOSTON RED SOX vs NEW YORK YANKEES - INSTALLATION PROGRAM</div>
+    <div class="subbar">The Greatest Comeback - Red Sox win the series 4 to 3</div>
+    <div class="greenbox"><div id="alcsDetail"></div></div>
+    <div class="panel menu">
+      <div class="panel-title">&#9552;&#9552; SELECT A GAME &#9552;&#9552;</div>
+      <div class="panel-body" id="alcsMenu"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">&#9552;&#9552; Recap &#9552;&#9552;</div>
+      <div class="panel-body" id="alcsDesc"></div>
+    </div>
+    <div class="footer">Press <span class="hot">&lt;Up/Down&gt;</span> to Move &nbsp; <span class="hot">&lt;Enter&gt;</span> to Load &nbsp; <span class="hot">&lt;Ctrl-X&gt;</span> to Exit</div>
+  </div>
+
   <!-- Swan station flip-clock countdown (easter egg) -->
   <div id="swan">
     <div class="flip-frame">
@@ -230,6 +254,9 @@
   var detailBody= document.getElementById('detailBody');
   var menuBody  = document.getElementById('menuBody');
   var descBody  = document.getElementById('descBody');
+  var alcsDetailEl = document.getElementById('alcsDetail');
+  var alcsMenuEl   = document.getElementById('alcsMenu');
+  var alcsDescEl   = document.getElementById('alcsDesc');
 
   var lastSession = null;
   var history = [];
@@ -238,6 +265,8 @@
   var installerActive = false;
   var menuIndex = 0;
   var easterEggsUnlocked = false;   // unlocked only after Exit to DOS
+  var alcsActive = false;
+  var alcsIndex = 0;
 
   /* ---------- Swan station easter egg ---------- */
   var swanEl     = document.getElementById('swan');
@@ -612,6 +641,7 @@
 
     // ---- Easter eggs: only available AFTER the schedule has been viewed ----
     if(easterEggsUnlocked){
+      if(cmd === "install lubinsky"){ launchAlcs(); return; }
       if(cmd === "wopr"){ enterWopr(); return; }
 
       // THE NUMBERS -> Swan station countdown + green screen
@@ -754,8 +784,130 @@
     }
   }
 
+  /* ===================== 2004 ALCS installer (install lubinsky) ===================== */
+  var ALCS = [
+    {g:1, shortdate:"Oct 12", date:"Oct 12, 2004", park:"Yankee Stadium", loc:"NYY", innings:9,
+     away:{name:"BOS", line:[0,0,0,0,0,0,5,2,0], r:7, h:10, e:0},
+     home:{name:"NYY", line:[2,0,4,0,0,2,0,2,null], r:10, h:14, e:0},
+     wp:"Mussina", lp:"Schilling", sv:"Rivera",
+     note:["Yankees jumped to an 8-0 lead; Boston's late rally","fell short. New York leads the series 1-0."]},
+    {g:2, shortdate:"Oct 13", date:"Oct 13, 2004", park:"Yankee Stadium", loc:"NYY", innings:9,
+     away:{name:"BOS", line:[0,0,0,0,0,0,0,1,0], r:1, h:5, e:0},
+     home:{name:"NYY", line:[1,0,0,0,0,2,0,0,null], r:3, h:7, e:0},
+     wp:"Lieber", lp:"Martinez", sv:"Rivera",
+     note:["Jon Lieber dominated; John Olerud homered.","Yankees lead the series 2-0."]},
+    {g:3, shortdate:"Oct 16", date:"Oct 16, 2004", park:"Fenway Park", loc:"BOS", innings:9,
+     away:{name:"NYY", line:[3,0,3,5,2,0,4,0,2], r:19, h:22, e:1},
+     home:{name:"BOS", line:[0,4,2,0,0,0,2,0,0], r:8, h:15, e:0},
+     wp:"Vazquez", lp:"Mendoza", sv:"",
+     note:["A 19-8 rout at Fenway. Yankees take a","commanding 3-0 series lead."]},
+    {g:4, shortdate:"Oct 17", date:"Oct 17, 2004", park:"Fenway Park", loc:"BOS", innings:12,
+     away:{name:"NYY", line:[0,0,2,0,0,2,0,0,0,0,0,0], r:4, h:12, e:1},
+     home:{name:"BOS", line:[0,0,0,0,3,0,0,0,1,0,0,2], r:6, h:8, e:0},
+     wp:"Leskanic", lp:"Quantrill", sv:"",
+     note:["Down 0-3 and trailing in the 9th, Dave Roberts stole","2nd; Ortiz won it with a 12th-inning walk-off homer."]},
+    {g:5, shortdate:"Oct 18", date:"Oct 18, 2004", park:"Fenway Park", loc:"BOS", innings:14,
+     away:{name:"NYY", line:[0,1,0,0,0,3,0,0,0,0,0,0,0,0], r:4, h:12, e:1},
+     home:{name:"BOS", line:[2,0,0,0,0,0,0,2,0,0,0,0,0,1], r:5, h:13, e:1},
+     wp:"Wakefield", lp:"Loaiza", sv:"",
+     note:["Ortiz again - a 14th-inning walk-off single after a","5+ hour classic. The series heads back to New York."]},
+    {g:6, shortdate:"Oct 19", date:"Oct 19, 2004", park:"Yankee Stadium", loc:"NYY", innings:9,
+     away:{name:"BOS", line:[0,0,0,4,0,0,0,0,0], r:4, h:11, e:0},
+     home:{name:"NYY", line:[0,0,0,0,0,0,1,1,0], r:2, h:6, e:0},
+     wp:"Schilling", lp:"Lieber", sv:"Foulke",
+     note:["Curt Schilling's bloody sock. He pitched 7 strong","innings; Boston forces a winner-take-all Game 7."]},
+    {g:7, shortdate:"Oct 20", date:"Oct 20, 2004", park:"Yankee Stadium", loc:"NYY", innings:9,
+     away:{name:"BOS", line:[2,4,0,2,0,0,0,1,1], r:10, h:13, e:0},
+     home:{name:"NYY", line:[0,0,1,0,0,0,2,0,0], r:3, h:5, e:1},
+     wp:"Lowe", lp:"Brown", sv:"",
+     note:["Damon's 2nd-inning grand slam. Boston completes the","first 0-3 comeback in MLB history to win the pennant."]}
+  ];
+
+  function col(v, w){ v = String(v); while(v.length < w) v = " " + v; return v; }
+  function alcsHeader(n){
+    var s = padRight("",6);
+    for(var i=1;i<=n;i++){ s += col(i,3); }
+    return s + col("R",5) + col("H",4) + col("E",3);
+  }
+  function alcsRow(t){
+    var s = padRight(t.name,6);
+    for(var i=0;i<t.line.length;i++){ s += col(t.line[i]===null ? "X" : t.line[i], 3); }
+    return s + col(t.r,5) + col(t.h,4) + col(t.e,3);
+  }
+  function buildBox(game){
+    var a=game.away, h=game.home;
+    var w = a.r>h.r ? a : h, l = a.r>h.r ? h : a;
+    var inn = game.innings>9 ? " ("+game.innings+")" : "";
+    return [
+      "GAME " + game.g + "    " + game.date + "    " + game.park,
+      "FINAL:  " + w.name + " " + w.r + ",  " + l.name + " " + l.r + inn,
+      "",
+      alcsHeader(game.innings),
+      alcsRow(a),
+      alcsRow(h),
+      "",
+      "WP: " + game.wp + "    LP: " + game.lp + (game.sv ? "    SV: " + game.sv : "")
+    ].join("\n");
+  }
+  function alcsMenuLabel(game){
+    var a=game.away, h=game.home;
+    var w = a.r>h.r ? a : h, l = a.r>h.r ? h : a;
+    var inn = game.innings>9 ? " ("+game.innings+")" : "";
+    return "GAME " + game.g + "   " + padRight(game.shortdate,7) + "@ " +
+           padRight(game.loc,5) + "  " + w.name + " " + w.r + ", " + l.name + " " + l.r + inn;
+  }
+  function renderAlcsPlaceholder(){
+    alcsDetailEl.textContent =
+      "Highlight a game below and press ENTER to\n" +
+      "load the full box score here.\n\n" +
+      "All 7 games of Boston's historic comeback\n" +
+      "from down 0-3 to win the 2004 pennant.";
+  }
+  function renderAlcsDetail(i){ alcsDetailEl.textContent = buildBox(ALCS[i]); }
+  function renderAlcsMenu(){
+    alcsMenuEl.innerHTML = '';
+    for(var i=0;i<ALCS.length;i++){
+      alcsMenuEl.appendChild(makeDiv(alcsMenuLabel(ALCS[i]), i===alcsIndex ? 'sel' : ''));
+    }
+    alcsMenuEl.appendChild(makeDiv("Exit to DOS", alcsIndex===ALCS.length ? 'sel' : ''));
+  }
+  function renderAlcsDesc(){
+    alcsDescEl.innerHTML = '';
+    if(alcsIndex === ALCS.length){
+      alcsDescEl.appendChild(makeDiv("Quit and return to the C:\\> prompt."));
+      return;
+    }
+    ALCS[alcsIndex].note.forEach(function(l){ alcsDescEl.appendChild(makeDiv(l)); });
+  }
+  function launchAlcs(){
+    alcsActive = true; locked = true; hidden.blur();
+    document.body.classList.add('alcs');
+    alcsIndex = 0;
+    renderAlcsMenu(); renderAlcsDesc(); renderAlcsPlaceholder();
+    window.scrollTo(0,0);
+  }
+  function exitAlcs(){
+    alcsActive = false;
+    document.body.classList.remove('alcs');
+    locked = false;
+    blank(); out("C:\\>exit");
+    out("2004. Greatest comeback in baseball history. Never forget.");
+    blank(); scrollBottom(); focusInput();
+  }
+  function alcsKey(e){
+    var n = ALCS.length + 1;
+    if(e.key==='ArrowUp'){ e.preventDefault(); alcsIndex=(alcsIndex-1+n)%n; renderAlcsMenu(); renderAlcsDesc(); }
+    else if(e.key==='ArrowDown'){ e.preventDefault(); alcsIndex=(alcsIndex+1)%n; renderAlcsMenu(); renderAlcsDesc(); }
+    else if(e.key==='Enter'){
+      e.preventDefault();
+      if(alcsIndex===ALCS.length){ exitAlcs(); }
+      else { renderAlcsDetail(alcsIndex); window.scrollTo(0,0); }
+    }
+    else if((e.key==='x'||e.key==='X') && e.ctrlKey){ e.preventDefault(); exitAlcs(); }
+  }
+
   /* ===================== input wiring ===================== */
-  function focusInput(){ if(!installerActive && !swanScreenActive) hidden.focus(); }
+  function focusInput(){ if(!installerActive && !swanScreenActive && !alcsActive) hidden.focus(); }
   document.addEventListener('click', function(){
     if(swanScreenActive){ hideSwanScreen(); return; }
     focusInput();
@@ -763,11 +915,12 @@
   window.addEventListener('keydown', function(e){
     if(swanScreenActive){ e.preventDefault(); hideSwanScreen(); return; }
     if(installerActive){ installerKey(e); return; }
+    if(alcsActive){ alcsKey(e); return; }
     if(!locked) focusInput();
   });
   hidden.addEventListener('input', function(){ typedEl.textContent=hidden.value; scrollBottom(); });
   hidden.addEventListener('keydown', function(e){
-    if(locked||installerActive||swanScreenActive){ return; }
+    if(locked||installerActive||swanScreenActive||alcsActive){ return; }
     if(e.key==='Enter'){
       e.preventDefault();
       var val=hidden.value;
