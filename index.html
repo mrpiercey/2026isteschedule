@@ -924,9 +924,9 @@
     cnc:    ["command & conquer","command and conquer","c&c","cnc","cnc.exe"],
     monkey: ["the secret of monkey island","monkey island","monkey","monkey.exe"],
     civ:    ["sid meier's civilization","civilization","civ","civ.exe"],
-    dott:   ["day of the tentacle","day of tentacle","dott","tentacle"],
-    kq6:    ["king's quest vi","kings quest vi","king's quest 6","kings quest 6","kq6","kings quest"],
-    wc2:    ["warcraft ii","warcraft 2","warcraft","wc2"]
+    dott:   ["day of the tentacle","day of tentacle","dott","tentacle","dott.exe"],
+    kq6:    ["king's quest vi","kings quest vi","king's quest 6","kings quest 6","kq6","kings quest","kq6.exe"],
+    wc2:    ["warcraft ii","warcraft 2","warcraft","wc2","warcraft.exe","wc2.exe"]
   };
   function gameKey(cmd){
     var c = cmd.indexOf("install ") === 0 ? cmd.slice(8).trim() : cmd;
@@ -1139,10 +1139,12 @@
         out("schoolai.bat   match.bat      readme.txt");
         if(easterEggsUnlocked){
           out("wopr.exe       lubinsky.exe   whte_rbt.obj");
-          out("nedry.exe      numbers.exe");
+          out("nedry.exe      numbers.exe    doom.exe");
+          out("cnc.exe        monkey.exe     civ.exe");
+          out("dott.exe       kq6.exe        warcraft.exe");
         }
         blank();
-        out((easterEggsUnlocked ? "17" : "12") + " file(s)");
+        out((easterEggsUnlocked ? "24" : "12") + " file(s)");
         blank(); break;
       case "ver":
         blank();
