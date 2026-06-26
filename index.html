@@ -34,6 +34,7 @@
   #screen{white-space:pre-wrap;word-break:break-word;max-width:80ch;}
   .line{min-height:1.15em;}
   .bright{color:var(--white);}
+  .dim{color:#7a7a7a;}
   #inputline{display:flex;white-space:pre;}
   #prompt{color:var(--termfg);}
   #typed{color:var(--white);}
@@ -292,6 +293,13 @@
 
   /* big ASCII boot banner */
   .asciiart{white-space:pre;font-size:18px;line-height:1.05;}
+
+  /* iste+ascd brand logo (boot screen) */
+  .logoart{white-space:pre;font-size:15px;line-height:1.0;}
+  .logoart .navy{color:#6f9bff;}   /* iste  (brand navy, brightened for CRT) */
+  .logoart .plus{color:#f5a623;}   /* +     (brand orange) */
+  .logoart .lblue{color:#4aa8e0;}  /* ascd  (brand light blue) */
+  @media (max-width: 760px){ .logoart{font-size:9px;} }
 
   /* ============ MOBILE / small screens ============ */
   @media (max-width: 760px){
@@ -2100,10 +2108,64 @@
     return rows;
   }
   function renderBanner(){
-    banner("ISTE 2026").forEach(function(row){
-      addLine(row).className = 'line asciiart bright';
-    });
+    renderLogo();
     addLine("");
+  }
+
+  /* ===================== iste+ascd brand logo ===================== */
+  // Top block: "iste" (navy) + "+" (orange).  Bottom block: "ascd" (light blue).
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function renderLogo(){
+    var leaf = [
+      "   .--.",
+      "  (    )",
+      "   '--'"
+    ];
+    // iste  (21 cols) paired with the plus block (7 cols)
+    var iste = [
+      " ___ ____ _____ _____",
+      "|_ _/ ___|_   _| ____|",
+      " | |\\___ \\ | | |  _|  ",
+      " | | ___) || | | |___ ",
+      "|___|____/ |_| |_____|"
+    ];
+    var plus = [
+      "       ",
+      "   _   ",
+      " _| |_ ",
+      "|_   _|",
+      "  |_|  "
+    ];
+    var ascd = [
+      "    _    ____   ____ ____ ",
+      "   / \\  / ___| / ___|  _ \\",
+      "  / _ \\ \\___ \\| |   | | | |",
+      " / ___ \\ ___) | |___| |_| |",
+      "/_/   \\_\\____/ \\____|____/ "
+    ];
+    var pad = "  ";
+    // leaf accent (navy), nudged over the "iste"
+    leaf.forEach(function(row){
+      addLineHTML('<span class="navy">' + esc(pad + "  " + row) + '</span>');
+    });
+    // iste + plus
+    for(var r=0;r<iste.length;r++){
+      addLineHTML(
+        '<span class="navy">' + esc(pad + iste[r]) + '</span>' +
+        '<span class="plus">' + esc("   " + plus[r]) + '</span>'
+      );
+    }
+    // ascd
+    ascd.forEach(function(row){
+      addLineHTML('<span class="lblue">' + esc(pad + row) + '</span>');
+    });
+  }
+  function addLineHTML(html){
+    var d = document.createElement('div');
+    d.className = 'line logoart';
+    d.innerHTML = html;
+    screenEl.appendChild(d);
+    return d;
   }
 
   /* ===================== MAGNETBOX26 monitor ===================== */
@@ -2143,9 +2205,16 @@
   window.addEventListener('resize', positionTube);
 
   /* ===================== go ===================== */
-  renderBanner();
-  typeBoot(0);
+  // First screen: the iste+ascd logo on its own, then clear and run the BIOS boot.
+  renderLogo();
+  addLine(""); addLine("");
+  addLine("        loading ...").className = 'line dim';
+  scrollBottom();
   focusInput();
+  setTimeout(function(){
+    screenEl.innerHTML = '';
+    typeBoot(0);
+  }, 2000);
 })();
 </script>
 </body>
