@@ -295,11 +295,13 @@
   .asciiart{white-space:pre;font-size:18px;line-height:1.05;}
 
   /* iste+ascd brand logo (boot screen) */
-  .logoart{white-space:pre;font-size:15px;line-height:1.0;}
+  .logowrap{text-align:center;margin:0 auto;}
+  .logoinner{display:inline-block;text-align:left;}
+  .logoart{white-space:pre;font-size:28px;line-height:1.0;}
   .logoart .navy{color:#6f9bff;}   /* iste  (brand navy, brightened for CRT) */
   .logoart .plus{color:#f5a623;}   /* +     (brand orange) */
   .logoart .lblue{color:#4aa8e0;}  /* ascd  (brand light blue) */
-  @media (max-width: 760px){ .logoart{font-size:9px;} }
+  @media (max-width: 760px){ .logoart{font-size:15px;} }
 
   /* ============ MOBILE / small screens ============ */
   @media (max-width: 760px){
@@ -2143,29 +2145,33 @@
       " / ___ \\ ___) | |___| |_| |",
       "/_/   \\_\\____/ \\____|____/ "
     ];
-    var pad = "  ";
+    var wrap = document.createElement('div');
+    wrap.className = 'logowrap';
+    var inner = document.createElement('div');
+    inner.className = 'logoinner';
+    wrap.appendChild(inner);
+    screenEl.appendChild(wrap);
+    function row(html){
+      var d = document.createElement('div');
+      d.className = 'line logoart';
+      d.innerHTML = html;
+      inner.appendChild(d);
+    }
     // leaf accent (navy), nudged over the "iste"
-    leaf.forEach(function(row){
-      addLineHTML('<span class="navy">' + esc(pad + "  " + row) + '</span>');
+    leaf.forEach(function(r){
+      row('<span class="navy">' + esc("  " + r) + '</span>');
     });
     // iste + plus
     for(var r=0;r<iste.length;r++){
-      addLineHTML(
-        '<span class="navy">' + esc(pad + iste[r]) + '</span>' +
+      row(
+        '<span class="navy">' + esc(iste[r]) + '</span>' +
         '<span class="plus">' + esc("   " + plus[r]) + '</span>'
       );
     }
     // ascd
-    ascd.forEach(function(row){
-      addLineHTML('<span class="lblue">' + esc(pad + row) + '</span>');
+    ascd.forEach(function(r){
+      row('<span class="lblue">' + esc(r) + '</span>');
     });
-  }
-  function addLineHTML(html){
-    var d = document.createElement('div');
-    d.className = 'line logoart';
-    d.innerHTML = html;
-    screenEl.appendChild(d);
-    return d;
   }
 
   /* ===================== MAGNETBOX26 monitor ===================== */
