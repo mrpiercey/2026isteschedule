@@ -294,14 +294,19 @@
   /* big ASCII boot banner */
   .asciiart{white-space:pre;font-size:18px;line-height:1.05;}
 
-  /* iste+ascd brand logo (boot screen) */
-  .logowrap{text-align:center;margin:0 auto;}
+  /* iste+ascd brand logo splash (boot screen) */
+  #splash{
+    position:absolute;inset:0;z-index:3;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:34px;background:#000;
+  }
   .logoinner{display:inline-block;text-align:left;}
-  .logoart{white-space:pre;font-size:28px;line-height:1.0;}
+  .logoart{white-space:pre;font-size:30px;line-height:1.0;}
   .logoart .navy{color:#6f9bff;}   /* iste  (brand navy, brightened for CRT) */
   .logoart .plus{color:#f5a623;}   /* +     (brand orange) */
   .logoart .lblue{color:#4aa8e0;}  /* ascd  (brand light blue) */
-  @media (max-width: 760px){ .logoart{font-size:15px;} }
+  .loadingbig{font-size:30px;color:#7a7a7a;letter-spacing:2px;}
+  @media (max-width: 760px){ .logoart{font-size:16px;} .loadingbig{font-size:18px;} }
 
   /* ============ MOBILE / small screens ============ */
   @media (max-width: 760px){
@@ -2109,11 +2114,6 @@
     }
     return rows;
   }
-  function renderBanner(){
-    renderLogo();
-    addLine("");
-  }
-
   /* ===================== iste+ascd brand logo ===================== */
   // Top block: "iste" (navy) + "+" (orange).  Bottom block: "ascd" (light blue).
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -2145,12 +2145,11 @@
       " / ___ \\ ___) | |___| |_| |",
       "/_/   \\_\\____/ \\____|____/ "
     ];
-    var wrap = document.createElement('div');
-    wrap.className = 'logowrap';
+    var splash = document.createElement('div');
+    splash.id = 'splash';
     var inner = document.createElement('div');
     inner.className = 'logoinner';
-    wrap.appendChild(inner);
-    screenEl.appendChild(wrap);
+    splash.appendChild(inner);
     function row(html){
       var d = document.createElement('div');
       d.className = 'line logoart';
@@ -2172,6 +2171,11 @@
     ascd.forEach(function(r){
       row('<span class="lblue">' + esc(r) + '</span>');
     });
+    var loading = document.createElement('div');
+    loading.className = 'loadingbig';
+    loading.textContent = 'loading ...';
+    splash.appendChild(loading);
+    return splash;
   }
 
   /* ===================== MAGNETBOX26 monitor ===================== */
@@ -2211,16 +2215,15 @@
   window.addEventListener('resize', positionTube);
 
   /* ===================== go ===================== */
-  // First screen: the iste+ascd logo on its own, then clear and run the BIOS boot.
-  renderLogo();
-  addLine(""); addLine("");
-  addLine("        loading ...").className = 'line dim';
-  scrollBottom();
+  // First screen: centered iste+ascd logo splash, then run the BIOS boot.
+  var splashEl = renderLogo();
+  crt.appendChild(splashEl);
   focusInput();
   setTimeout(function(){
+    if(splashEl && splashEl.parentNode) splashEl.parentNode.removeChild(splashEl);
     screenEl.innerHTML = '';
     typeBoot(0);
-  }, 2000);
+  }, 2200);
 })();
 </script>
 </body>
