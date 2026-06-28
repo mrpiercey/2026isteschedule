@@ -86,12 +86,19 @@
     box-shadow:5px 5px 0 rgba(0,0,0,0.35);
   }
   #detailBody{height:10em;overflow:hidden;white-space:normal;font-size:21px;line-height:1.18;}
-  /* when a session is loaded with ENTER, the green focus window grows */
-  body.session-loaded .greenbox{padding:14px 22px;transition:padding .12s ease;}
-  body.session-loaded #detailBody{height:15em;font-size:24px;line-height:1.22;transition:height .12s ease,font-size .12s ease;}
-  body.session-loaded .d-title{font-size:27px;}
+  /* when a session is loaded, the green focus window pops up large and in
+     front of the blue menu / green boxes, with a dimmed backdrop */
+  body.session-loaded .greenbox{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:min(94vw,1040px);z-index:50;cursor:pointer;
+    padding:20px 28px;margin:0;
+    box-shadow:0 0 0 4000px rgba(0,0,0,0.45), 12px 12px 0 rgba(0,0,0,0.5);
+  }
+  body.session-loaded #detailBody{height:auto;min-height:13em;font-size:24px;line-height:1.25;}
+  body.session-loaded .d-title{font-size:29px;}
   body.session-loaded .d-facts{font-size:24px;}
   body.session-loaded .d-desc-col{font-size:23px;}
+  .d-close{color:#003a00;text-align:right;margin-bottom:4px;}
   .d-title{color:var(--white);font-size:23px;}
   .d-label{display:inline-block;width:6em;color:#003a00;}
   .d-value{color:var(--white);}
@@ -470,6 +477,10 @@
   var promptEl  = document.getElementById('prompt');
   var hidden    = document.getElementById('hiddenInput');
   var detailBody= document.getElementById('detailBody');
+  // click the popped-up focus window to close it back to the menu
+  detailBody.addEventListener('click', function(){
+    if(document.body.classList.contains('session-loaded')){ renderDetailPlaceholder(); }
+  });
   var menuBody  = document.getElementById('menuBody');
   var descBody  = document.getElementById('descBody');
   var alcsDetailEl = document.getElementById('alcsDetail');
@@ -1805,6 +1816,7 @@
     var s=SESSIONS[key]; lastSession=key;
     document.body.classList.add('session-loaded');
     detailBody.innerHTML='';
+    detailBody.appendChild(makeDiv("[ press ESC or click to close ]", 'd-close'));
     // two columns from the top: left = title + facts, right = description
     var cols = document.createElement('div'); cols.className = 'd-cols';
     var facts = document.createElement('div'); facts.className = 'd-facts';
@@ -1852,6 +1864,8 @@
       if(item.key==="__exit"){ exitInstaller(); }
       else if(item.key==="__sound"){ openSoundInstall(); }
       else { renderDetail(item.key); window.scrollTo(0,0); }
+    } else if(e.key==='Escape'){
+      if(document.body.classList.contains('session-loaded')){ e.preventDefault(); renderDetailPlaceholder(); }
     } else if((e.key==='x'||e.key==='X') && e.ctrlKey){
       e.preventDefault(); exitInstaller();
     }
