@@ -359,13 +359,13 @@
     <div class="titlebar">ISTE Live 2026 - Donnie Piercey Schedule Installation Program</div>
     <div class="subbar">Orange County Convention Center - Orlando, FL</div>
 
-    <div class="greenbox">
-      <div id="detailBody"></div>
-    </div>
-
     <div class="panel menu">
       <div class="panel-title">&#9552;&#9552; MAIN MENU &#9552;&#9552;</div>
       <div class="panel-body" id="menuBody"></div>
+    </div>
+
+    <div class="greenbox">
+      <div id="detailBody"></div>
     </div>
 
     <div class="footer">Press <span class="hot">&lt;Up/Down&gt;</span> to Move &nbsp; <span class="hot">&lt;Enter&gt;</span> to Load &nbsp; <span class="hot">&lt;Ctrl-X&gt;</span> to Exit</div>
@@ -1787,7 +1787,7 @@
   }
   function renderDetailPlaceholder(){
     detailBody.innerHTML='';
-    detailBody.appendChild(makeDiv("Highlight a session in the MAIN MENU below", 'd-hint'));
+    detailBody.appendChild(makeDiv("Highlight a session in the MAIN MENU above", 'd-hint'));
     detailBody.appendChild(makeDiv("and press ENTER to load it here.", 'd-hint'));
     detailBody.appendChild(makeDiv(""));
     detailBody.appendChild(makeDiv("Date, time, location, speakers, and the full", 'd-hint'));
